@@ -9,6 +9,7 @@ import (
 	"regexp"
 	"sort"
 	"strings"
+	"time"
 
 	. "github.com/ahmetb/go-linq/v3"
 	"github.com/aymerick/douceur/parser"
@@ -30,6 +31,7 @@ type Params struct {
 	version          bool
 	colorsCheck      bool
 	sectionsCheck    bool
+	similarityCheck  bool
 	longScriptsCheck bool
 	path             string
 	longScriptLength int
@@ -69,6 +71,23 @@ type ScriptSummary struct {
 	count        int
 }
 
+type SimilaritySummary struct {
+	sections          [2]StyleSection
+	similarity        int
+	duplicatedScripts []string
+}
+
+type StyleHashRecorder struct {
+	sectionIndex int
+	originString string
+}
+
+var styleList = []StyleSection{}
+var longScriptList = []Script{}
+var colorScriptList = []Script{}
+
+var hashCounters = map[uint64][]StyleHashRecorder{} // hashValue -> section
+
 func hash(s string) uint64 {
 	h := fnv.New64()
 	h.Write([]byte(s))
@@ -102,20 +121,19 @@ func WalkMatch(root, pattern string, ignores []string) ([]string, error) {
 	return matches, nil
 }
 
-// SectionsParse returns StylSections, LongScripts and ColorScripts
-func SectionsParse(filePath string) ([]StyleSection, []Script, []Script) {
+// SectionsParse returns LongScripts and ColorScripts
+func SectionsParse(filePath string) ([]Script, []Script) {
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
-		return []StyleSection{}, []Script{}, []Script{}
+		return []Script{}, []Script{}
 	}
 	stylesheet, err := parser.Parse(string(dat))
 	if err != nil {
-		return []StyleSection{}, []Script{}, []Script{}
+		return []Script{}, []Script{}
 	}
 	styleString := strings.Replace(stylesheet.String(), "\r", "", -1)
 
 	styleSection := StyleSection{name: "", value: []string{}, filePath: ""}
-	styleList := []StyleSection{}
 	longScriptList := []Script{}
 	colorScriptList := []Script{}
 	for _, sub := range strings.Split(styleString, "\n") {
@@ -125,9 +143,19 @@ func SectionsParse(filePath string) ([]StyleSection, []Script, []Script) {
 		} else if strings.Contains(sub, "}") {
 			if len(styleSection.value) > 1 {
 				sort.Strings(styleSection.value)
+				styleSection.valueHash = hash(strings.Join(styleSection.value, ""))
+				styleList = append(styleList, styleSection)
 			}
-			styleSection.valueHash = hash(strings.Join(styleSection.value, ""))
-			styleList = append(styleList, styleSection)
+			if len(styleSection.value) >= 5 {
+				for _, value := range styleSection.value {
+					hashValue := hash(value)
+					if counter, found := hashCounters[hashValue]; found {
+						hashCounters[hashValue] = append(counter, StyleHashRecorder{sectionIndex: len(styleList) - 1, originString: value})
+					} else {
+						hashCounters[hashValue] = []StyleHashRecorder{{sectionIndex: len(styleList) - 1, originString: value}}
+					}
+				}
+			}
 			styleSection = StyleSection{name: "", value: []string{}, filePath: ""}
 		} else {
 			partials := strings.Split(sub, ": ")
@@ -153,10 +181,12 @@ func SectionsParse(filePath string) ([]StyleSection, []Script, []Script) {
 					})
 				}
 			}
-			styleSection.value = append(styleSection.value, sub)
+			if len(strings.TrimSpace(sub)) > 0 {
+				styleSection.value = append(styleSection.value, strings.TrimSpace(sub))
+			}
 		}
 	}
-	return styleList, longScriptList, colorScriptList
+	return longScriptList, colorScriptList
 }
 
 func DupStyleSectionsChecker(styleList []StyleSection) []ScriptSummary {
@@ -271,13 +301,92 @@ func StyleSectionsWarning(dupStyleSections []ScriptSummary) {
 	}
 }
 
+type HashOrigin struct {
+	hash   uint64
+	origin string
+}
+
+func min(a, b int) int {
+	if a < b {
+		return a
+	}
+	return b
+}
+
+func getSimilarSections() []SimilaritySummary {
+	records := map[[2]int][]HashOrigin{}
+	summary := []SimilaritySummary{}
+	for key, element := range hashCounters {
+		if len(element) < 2 {
+			continue
+		}
+		for i := 0; i < len(element)-1; i++ {
+			for j := i + 1; j < len(element); j++ {
+				if element[i].sectionIndex < element[j].sectionIndex {
+					if record, found := records[[2]int{element[i].sectionIndex, element[j].sectionIndex}]; found {
+						records[[2]int{element[i].sectionIndex, element[j].sectionIndex}] = append(record, HashOrigin{hash: key, origin: element[i].originString})
+					} else {
+						records[[2]int{element[i].sectionIndex, element[j].sectionIndex}] = []HashOrigin{{hash: key, origin: element[i].originString}}
+					}
+				}
+			}
+		}
+	}
+	for key, element := range records {
+		left, right := styleList[key[0]], styleList[key[1]]
+		lengthLeft, lengthRight := len(left.value), len(right.value)
+		if float32(len(element)) > float32(lengthLeft)*0.8 || float32(len(element)) > float32(lengthRight)*0.8 {
+			if len(element) == min(lengthLeft, lengthRight) {
+				continue
+			}
+			duplicatedStrings := []string{}
+			for _, hashOrigin := range element {
+				duplicatedStrings = append(duplicatedStrings, hashOrigin.origin)
+			}
+			summary = append(summary, SimilaritySummary{
+				sections:          [2]StyleSection{left, right},
+				similarity:        100 * len(element) / min(lengthLeft, lengthRight),
+				duplicatedScripts: duplicatedStrings,
+			})
+		}
+	}
+	return summary
+}
+
+func SimilarSectionsWarning(similaritySummarys []SimilaritySummary) {
+	if len(similaritySummarys) > 0 {
+		fmt.Printf(WarningColor, fmt.Sprintf("\n%d similar css classes found as follow ( >= 80%% && < 100%% ).\n", len(similaritySummarys)))
+		for index, summary := range similaritySummarys {
+			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
+			fmt.Printf(ErrorColor, fmt.Sprintf("Sections share %d per cent similarity:\n", summary.similarity))
+			for _, section := range summary.sections {
+				fmt.Printf(WarningColor, fmt.Sprintf("Css in: %s << %s\n", section.name, section.filePath))
+				fmt.Printf(DebugColor, "\n{\n")
+				for _, line := range section.value {
+					if strings.Contains(strings.Join(summary.duplicatedScripts, "\n"), line) {
+						fmt.Printf(DebugColor, fmt.Sprintln(line))
+					} else {
+						fmt.Println(line)
+					}
+				}
+				fmt.Printf(DebugColor, "}\n\n")
+			}
+		}
+		fmt.Printf(WarningColor, fmt.Sprintf("For above classes, %s stands for duplicated lines\n\n\n", fmt.Sprintf(DebugColor, "Cyan Color")))
+	} else {
+		fmt.Printf(DebugColor, "√\t")
+		fmt.Printf(InfoColor, "No similar css class found (with >80%% simularity)\n")
+	}
+}
+
 func ParamsParse() {
 	ignorePathsString := ""
 	flag.BoolVar(&params.version, "version", false, "prints current version and exits")
 	flag.StringVar(&params.path, "path", ".", "set path to files, default to be current folder")
 	flag.StringVar(&ignorePathsString, "ignores", "", "paths and files to be ignored (e.g. node_modules,*.example.css)")
 	flag.BoolVar(&params.colorsCheck, "colors", true, "whether to check colors")
-	flag.BoolVar(&params.sectionsCheck, "sections", true, "whether to check sections duplications")
+	flag.BoolVar(&params.sectionsCheck, "sections", true, "whether to check css class duplications")
+	flag.BoolVar(&params.similarityCheck, "sim", true, "whether to check similar css classes (>=80% && < 100%)")
 	flag.BoolVar(&params.longScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
 	flag.IntVar(&params.longScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
 	flag.Parse()
@@ -287,6 +396,7 @@ func ParamsParse() {
 }
 
 func main() {
+	t1 := time.Now()
 	ParamsParse()
 	if params.version {
 		fmt.Printf("Version: v%s\n", Version)
@@ -307,18 +417,15 @@ func main() {
 	fmt.Println("\nChecking starts. this may take minutes to scan.")
 	fmt.Printf(NoticeColor, fmt.Sprintf("Found %d css files. Begin to scan.\n", len(files)))
 
-	styleList := []StyleSection{}
-	longScriptList := []Script{}
-	colorScriptList := []Script{}
 	for _, path := range files {
-		list, longScripts, colorScripts := SectionsParse(path)
-		styleList = append(styleList, list...)
+		longScripts, colorScripts := SectionsParse(path)
 		longScriptList = append(longScriptList, longScripts...)
 		colorScriptList = append(colorScriptList, colorScripts...)
 	}
 	fmt.Printf(DebugColor, fmt.Sprintf("Found %d css sections. Begin to compare.\n", len(styleList)))
 
 	dupScripts, dupColors, dupSections := []ScriptSummary{}, []ScriptSummary{}, []ScriptSummary{}
+	similaritySummarys := []SimilaritySummary{}
 	if params.longScriptsCheck {
 		dupScripts = DupScriptsChecker(longScriptList)
 		LongScriptsWarning(dupScripts)
@@ -331,6 +438,11 @@ func main() {
 		dupSections = DupStyleSectionsChecker(styleList)
 		StyleSectionsWarning(dupSections)
 	}
+	if params.similarityCheck {
+		similaritySummarys = getSimilarSections()
+		SimilarSectionsWarning(similaritySummarys)
+	}
+	t2 := time.Now()
 
 	fmt.Printf(DebugColor, fmt.Sprintln("Css Scan Completed."))
 	if params.longScriptsCheck && len(dupScripts) > 0 {
@@ -342,4 +454,10 @@ func main() {
 	if params.sectionsCheck && len(dupSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupSections)))))
 	}
+	if params.similarityCheck && len(dupSections) > 0 {
+		fmt.Printf(WarningColor, fmt.Sprintf("Found %s similar css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(similaritySummarys)))))
+	}
+
+	diff := t2.Sub(t1)
+	fmt.Println("Time consumed (not including printing process): ", diff)
 }
