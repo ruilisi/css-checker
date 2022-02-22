@@ -26,11 +26,30 @@ const (
 	Version = "1.0"
 )
 
-var LongScriptLength = 20
+type Params struct {
+	version          bool
+	colorsCheck      bool
+	sectionsCheck    bool
+	longScriptsCheck bool
+	path             string
+	longScriptLength int
+	ignores          []string
+}
+
+var params = Params{
+	version:          false,
+	colorsCheck:      true,
+	sectionsCheck:    true,
+	longScriptsCheck: true,
+	path:             ".",
+	longScriptLength: 20,
+	ignores:          []string{},
+}
 
 // StyleSection ...
 type StyleSection struct {
 	name      string
+	filePath  string
 	value     []string
 	valueHash uint64
 }
@@ -56,13 +75,18 @@ func hash(s string) uint64 {
 	return h.Sum64()
 }
 
-func WalkMatch(root, pattern string) ([]string, error) {
+func WalkMatch(root, pattern string, ignores []string) ([]string, error) {
 	var matches []string
+	reg := regexp.MustCompile(strings.Join(ignores, "|"))
+	fmt.Println(reg)
 	err := filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
 		}
 		if info.IsDir() {
+			return nil
+		}
+		if len(ignores) > 0 && len(reg.FindStringSubmatch(path)) > 0 {
 			return nil
 		}
 		if matched, err := filepath.Match(pattern, filepath.Base(path)); err != nil {
@@ -90,27 +114,28 @@ func SectionsParse(filePath string) ([]StyleSection, []Script, []Script) {
 	}
 	styleString := strings.Replace(stylesheet.String(), "\r", "", -1)
 
-	styleSection := StyleSection{name: "", value: []string{}}
+	styleSection := StyleSection{name: "", value: []string{}, filePath: ""}
 	styleList := []StyleSection{}
 	longScriptList := []Script{}
 	colorScriptList := []Script{}
 	for _, sub := range strings.Split(styleString, "\n") {
 		if strings.HasSuffix(sub, "{") {
 			styleSection.name = strings.Replace(sub, "{", "", -1)
+			styleSection.filePath = filePath
 		} else if strings.Contains(sub, "}") {
 			if len(styleSection.value) > 1 {
 				sort.Strings(styleSection.value)
 			}
 			styleSection.valueHash = hash(strings.Join(styleSection.value, ""))
 			styleList = append(styleList, styleSection)
-			styleSection = StyleSection{name: "", value: []string{}}
+			styleSection = StyleSection{name: "", value: []string{}, filePath: ""}
 		} else {
 			partials := strings.Split(sub, ": ")
 			if len(partials) == 2 {
 				key := strings.TrimSpace(partials[0])
 				value := strings.TrimSpace(partials[1])
 				// Check is Long Script
-				if len(value) > LongScriptLength && !strings.Contains(value, "var") {
+				if len(value) > params.longScriptLength && !strings.Contains(value, "var") {
 					longScriptList = append(longScriptList, Script{filePath: filePath,
 						sectionName: styleSection.name,
 						value:       value,
@@ -149,7 +174,7 @@ func DupStyleSectionsChecker(styleList []StyleSection) []ScriptSummary {
 		func(group Group) interface{} {
 			names := []string{}
 			for _, styleSection := range group.Group {
-				names = append(names, styleSection.(StyleSection).name)
+				names = append(names, fmt.Sprintf("%s << %s", styleSection.(StyleSection).name, styleSection.(StyleSection).filePath))
 			}
 			return ScriptSummary{
 				sectionNames: names,
@@ -246,32 +271,37 @@ func StyleSectionsWarning(dupStyleSections []ScriptSummary) {
 	}
 }
 
-func main() {
-	version, colorsCheck, sectionsCheck, longScriptsCheck := false, true, true, true
-	var path string
-	flag.BoolVar(&version, "version", false, "prints current version and exits")
-	flag.StringVar(&path, "path", ".", "set path to files, default to be current folder")
-	flag.BoolVar(&colorsCheck, "colors", true, "whether to check colors")
-	flag.BoolVar(&sectionsCheck, "sections", true, "whether to check sections duplications")
-	flag.BoolVar(&longScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
-	flag.IntVar(&LongScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
+func ParamsParse() {
+	ignorePathsString := ""
+	flag.BoolVar(&params.version, "version", false, "prints current version and exits")
+	flag.StringVar(&params.path, "path", ".", "set path to files, default to be current folder")
+	flag.StringVar(&ignorePathsString, "ignores", "", "paths and files to be ignored (e.g. node_modules,*.example.css)")
+	flag.BoolVar(&params.colorsCheck, "colors", true, "whether to check colors")
+	flag.BoolVar(&params.sectionsCheck, "sections", true, "whether to check sections duplications")
+	flag.BoolVar(&params.longScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
+	flag.IntVar(&params.longScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
 	flag.Parse()
-	if version {
+	if len(ignorePathsString) > 0 {
+		params.ignores = strings.Split(ignorePathsString, ",")
+	}
+}
+
+func main() {
+	ParamsParse()
+	if params.version {
 		fmt.Printf("Version: v%s\n", Version)
 		return
 	}
-	fmt.Println(path)
-	if strings.Contains(path, "~") {
+	if strings.Contains(params.path, "~") {
 		dirname, err := os.UserHomeDir()
 		if err != nil {
 			fmt.Printf(ErrorColor, "Home path not found")
 		}
-		path = strings.Replace(path, "~", dirname, 1) // 通过flags拿到的路径中~并不会被转译为$HOME导致读取文件错误
+		params.path = strings.Replace(params.path, "~", dirname, 1) // 通过flags拿到的路径中~并不会被转译为$HOME导致读取文件错误
 	}
-	fmt.Println(path)
-	files, err := WalkMatch(path, "*.css")
+	files, err := WalkMatch(params.path, "*.css", params.ignores)
 	if err != nil {
-		fmt.Printf(ErrorColor, fmt.Sprintln("No css files found at given path"))
+		fmt.Printf(ErrorColor, fmt.Sprintf("No css files found at given path: %s", params.path))
 		return
 	}
 	fmt.Println("\nChecking starts. this may take minutes to scan.")
@@ -289,27 +319,27 @@ func main() {
 	fmt.Printf(DebugColor, fmt.Sprintf("Found %d css sections. Begin to compare.\n", len(styleList)))
 
 	dupScripts, dupColors, dupSections := []ScriptSummary{}, []ScriptSummary{}, []ScriptSummary{}
-	if longScriptsCheck {
+	if params.longScriptsCheck {
 		dupScripts = DupScriptsChecker(longScriptList)
 		LongScriptsWarning(dupScripts)
 	}
-	if colorsCheck {
+	if params.colorsCheck {
 		dupColors = DupScriptsChecker(colorScriptList)
 		ColorScriptsWarning(dupColors)
 	}
-	if sectionsCheck {
+	if params.sectionsCheck {
 		dupSections = DupStyleSectionsChecker(styleList)
 		StyleSectionsWarning(dupSections)
 	}
 
 	fmt.Printf(DebugColor, fmt.Sprintln("Css Scan Completed."))
-	if longScriptsCheck && len(dupScripts) > 0 {
+	if params.longScriptsCheck && len(dupScripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated long script values\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupScripts)))))
 	}
-	if colorsCheck && len(dupColors) > 0 {
+	if params.colorsCheck && len(dupColors) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated colors\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupColors)))))
 	}
-	if sectionsCheck && len(dupSections) > 0 {
+	if params.sectionsCheck && len(dupSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupSections)))))
 	}
 }
