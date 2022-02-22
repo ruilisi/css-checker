@@ -146,6 +146,7 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 				styleSection.valueHash = hash(strings.Join(styleSection.value, ""))
 				styleList = append(styleList, styleSection)
 			}
+			// Generate hashes for each line in class, for similarity compare
 			if len(styleSection.value) >= 5 {
 				for _, value := range styleSection.value {
 					hashValue := hash(value)
@@ -170,6 +171,7 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 						key:         key,
 					})
 				}
+				// Colors Checking
 				reg := regexp.MustCompile(`#([A-Fa-f0-9]{3,6})|(rgba|hsla|rgb|hsl)\(([^}]*)\)`)
 				match := reg.FindStringSubmatch(strings.ToLower(value))
 				if len(match) > 0 {
@@ -316,6 +318,8 @@ func min(a, b int) int {
 func getSimilarSections() []SimilaritySummary {
 	records := map[[2]int][]HashOrigin{}
 	summary := []SimilaritySummary{}
+
+	// Convert map LineHash -> Section => [SectionIndex1][SectionIndex2] <-> Duplicated Hashes [O(n)], n for identical hash, section stands for css class
 	for key, element := range hashCounters {
 		if len(element) < 2 {
 			continue
@@ -332,6 +336,8 @@ func getSimilarSections() []SimilaritySummary {
 			}
 		}
 	}
+
+	// In map: [SectionIndex1][SectionIndex2] -> Duplicated Hashes, number of the duplicated hashes stands for duplicated lines between classes.
 	for key, element := range records {
 		left, right := styleList[key[0]], styleList[key[1]]
 		lengthLeft, lengthRight := len(left.value), len(right.value)
