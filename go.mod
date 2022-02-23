@@ -1,4 +1,4 @@
-module css-checker
+module github.com/ruilisi/css-checker
 
 go 1.18
 
