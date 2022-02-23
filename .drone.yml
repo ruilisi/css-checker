@@ -1,0 +1,30 @@
+---
+kind: pipeline
+type: kubernetes
+name: sync-to-github
+
+platform:
+  os: linux
+  arch: arm64
+
+workspace:
+  path: /drone/src
+
+trigger:
+  ref:
+    - refs/heads/master
+  event:
+    exclude:
+      - promote
+
+steps:
+  - name: sync commit
+    image: alpine/git
+    environment:
+      SSH_KEY:
+        from_secret: github_ssh_key
+    commands:
+      - mkdir -p /root/.ssh/ && echo $SSH_KEY | base64 -d > /root/.ssh/id_rsa && chmod 600 /root/.ssh/id_rsa
+      - ssh-keyscan -t rsa github.com > /root/.ssh/known_hosts && chmod 600 /root/.ssh/known_hosts
+      - git remote add github git@github.com:ruilisi/css-checker.git
+      - git push github ${branch:-${DRONE_BRANCH}} --force
