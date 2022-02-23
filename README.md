@@ -1,10 +1,16 @@
 # CSS CHECKER
 
+## Install (Go 1.18)
+`go install github.com/ruilisi/css-checker`
+
 ## Build & Release
 * `make build`
 * `make release`
 
 ## Usage
+
+#### Run
+* `cd PROJECT_WITH_CSS_FILES; css-checker`
 
 #### Basic commands
 
