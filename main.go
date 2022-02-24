@@ -13,6 +13,7 @@ import (
 
 	. "github.com/ahmetb/go-linq/v3"
 	"github.com/aymerick/douceur/parser"
+	"github.com/mazznoer/csscolorparser"
 )
 
 const (
@@ -62,13 +63,20 @@ type Script struct {
 	sectionName string
 	key         string
 	value       string
+	hashValue   uint64
 }
 
-// LongScriptSummary records long scripts that used more then once
 type ScriptSummary struct {
-	value        string
-	sectionNames []string
-	count        int
+	hashValue uint64
+	value     string
+	scripts   []Script
+	count     int
+}
+
+type SectionSummary struct {
+	names []string
+	value string
+	count int
 }
 
 type SimilaritySummary struct {
@@ -167,6 +175,7 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 				if len(value) > params.longScriptLength && !strings.Contains(value, "var") {
 					longScriptList = append(longScriptList, Script{filePath: filePath,
 						sectionName: styleSection.name,
+						hashValue:   hash(value),
 						value:       value,
 						key:         key,
 					})
@@ -175,12 +184,24 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 				reg := regexp.MustCompile(`#([A-Fa-f0-9]{3,6})|(rgba|hsla|rgb|hsl)\(([^}]*)\)`)
 				match := reg.FindStringSubmatch(strings.ToLower(value))
 				if len(match) > 0 {
-					colorScriptList = append(colorScriptList, Script{
-						filePath:    filePath,
-						sectionName: styleSection.name,
-						value:       match[0],
-						key:         key,
-					})
+					color, err := csscolorparser.Parse(match[0])
+					if err == nil {
+						colorScriptList = append(colorScriptList, Script{
+							filePath:    filePath,
+							sectionName: styleSection.name,
+							hashValue:   hash(color.RGBString()),
+							value:       match[0],
+							key:         key,
+						})
+					} else {
+						colorScriptList = append(colorScriptList, Script{
+							filePath:    filePath,
+							sectionName: styleSection.name,
+							hashValue:   hash(match[0]),
+							value:       match[0],
+							key:         key,
+						})
+					}
 				}
 			}
 			if len(strings.TrimSpace(sub)) > 0 {
@@ -191,8 +212,8 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 	return longScriptList, colorScriptList
 }
 
-func DupStyleSectionsChecker(styleList []StyleSection) []ScriptSummary {
-	groups := []ScriptSummary{}
+func DupStyleSectionsChecker(styleList []StyleSection) []SectionSummary {
+	groups := []SectionSummary{}
 	From(styleList).GroupBy(func(script interface{}) interface{} {
 		return script.(StyleSection).valueHash // hash value as key
 	}, func(script interface{}) interface{} {
@@ -208,10 +229,10 @@ func DupStyleSectionsChecker(styleList []StyleSection) []ScriptSummary {
 			for _, styleSection := range group.Group {
 				names = append(names, fmt.Sprintf("%s << %s", styleSection.(StyleSection).name, styleSection.(StyleSection).filePath))
 			}
-			return ScriptSummary{
-				sectionNames: names,
-				value:        strings.Join(group.Group[0].(StyleSection).value, "\n"),
-				count:        len(names),
+			return SectionSummary{
+				names: names,
+				value: strings.Join(group.Group[0].(StyleSection).value, "\n"),
+				count: len(names),
 			}
 		}).ToSlice(&groups)
 	return groups
@@ -220,13 +241,9 @@ func DupStyleSectionsChecker(styleList []StyleSection) []ScriptSummary {
 func DupScriptsChecker(longScriptList []Script) []ScriptSummary {
 	groups := []ScriptSummary{}
 	From(longScriptList).GroupBy(func(script interface{}) interface{} {
-		return script.(Script).value // script value as key
+		return script.(Script).hashValue // script hashed value as key
 	}, func(script interface{}) interface{} {
-		return fmt.Sprintf("%s: %s << %s << %s", script.(Script).key,
-			script.(Script).value,
-			script.(Script).sectionName,
-			script.(Script).filePath,
-		) // grouped info
+		return script
 	}).Where(func(group interface{}) bool {
 		return len(group.(Group).Group) > 1
 	}).OrderByDescending( // sort groups by its length
@@ -234,14 +251,15 @@ func DupScriptsChecker(longScriptList []Script) []ScriptSummary {
 			return len(group.(Group).Group)
 		}).SelectT( // get structs out of groups
 		func(group Group) interface{} {
-			names := []string{}
-			for _, name := range group.Group {
-				names = append(names, name.(string))
+			scripts := []Script{}
+			for _, group := range group.Group {
+				scripts = append(scripts, group.(Script))
 			}
 			return ScriptSummary{
-				sectionNames: names,
-				value:        group.Key.(string),
-				count:        len(names),
+				scripts:   scripts,
+				hashValue: group.Key.(uint64),
+				value:     scripts[0].value,
+				count:     len(scripts),
 			}
 		}).ToSlice(&groups)
 	return groups
@@ -255,8 +273,8 @@ func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(DebugColor, longScript.value)
 			fmt.Printf(ErrorColor, fmt.Sprintf(" Found in %d places:\n", longScript.count))
-			for _, name := range longScript.sectionNames {
-				fmt.Printf("\t %s\n", name)
+			for _, script := range longScript.scripts {
+				fmt.Printf("%s In %s\n", script.sectionName, script.filePath)
 			}
 		}
 		fmt.Printf(WarningColor, fmt.Sprintf("\nThe above %d duplicated css long scripts shall be set to variables.\n", len(dupLongScripts)))
@@ -270,12 +288,18 @@ func ColorScriptsWarning(dupLongScripts []ScriptSummary) {
 	if len(dupLongScripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d duplicated color found as follow.\n", len(dupLongScripts)))
 		fmt.Println("(Colors are recommanded to be stored as variables, which can be easily updated or to be used in Themes)\n")
-		for index, longScript := range dupLongScripts {
+		for index, summary := range dupLongScripts {
+			color, err := csscolorparser.Parse(summary.value)
+			rgbString, hexString := summary.value, summary.value
+			if err == nil {
+				rgbString = color.RGBString()
+				hexString = color.HexString()
+			}
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
-			fmt.Printf(DebugColor, fmt.Sprintf("Color Value: %s", longScript.value))
-			fmt.Printf(ErrorColor, fmt.Sprintf(" Found in %d places:\n", longScript.count))
-			for _, name := range longScript.sectionNames {
-				fmt.Printf("\t %s\n", name)
+			fmt.Printf(DebugColor, fmt.Sprintf("%s ( %s )", rgbString, hexString))
+			fmt.Printf(ErrorColor, fmt.Sprintf(" Found in %d places:\n", summary.count))
+			for _, script := range summary.scripts {
+				fmt.Printf("(%s: %s) < %s In %s\n", script.key, script.value, script.sectionName, script.filePath)
 			}
 		}
 		fmt.Printf(WarningColor, fmt.Sprintf("\nThe above %d duplicated colors shall be set to variables.\n", len(dupLongScripts)))
@@ -285,13 +309,13 @@ func ColorScriptsWarning(dupLongScripts []ScriptSummary) {
 	}
 }
 
-func StyleSectionsWarning(dupStyleSections []ScriptSummary) {
+func StyleSectionsWarning(dupStyleSections []SectionSummary) {
 	if len(dupStyleSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\n%d duplicated css classes found as follow.\n", len(dupStyleSections)))
 		for index, longScript := range dupStyleSections {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(ErrorColor, fmt.Sprintf("Same class content found in %d places:\n", longScript.count))
-			for _, name := range longScript.sectionNames {
+			for _, name := range longScript.names {
 				fmt.Printf("\t %s\n", name)
 			}
 			fmt.Printf(DebugColor, fmt.Sprintf("Css content:\n{\n%s\n}\n\n", longScript.value))
@@ -356,6 +380,9 @@ func getSimilarSections() []SimilaritySummary {
 			})
 		}
 	}
+	sort.SliceStable(summary, func(i, j int) bool {
+		return summary[i].similarity < summary[j].similarity
+	})
 	return summary
 }
 
@@ -430,7 +457,7 @@ func main() {
 	}
 	fmt.Printf(DebugColor, fmt.Sprintf("Found %d css sections. Begin to compare.\n", len(styleList)))
 
-	dupScripts, dupColors, dupSections := []ScriptSummary{}, []ScriptSummary{}, []ScriptSummary{}
+	dupScripts, dupColors, dupSections := []ScriptSummary{}, []ScriptSummary{}, []SectionSummary{}
 	similaritySummarys := []SimilaritySummary{}
 	if params.longScriptsCheck {
 		dupScripts = DupScriptsChecker(longScriptList)
