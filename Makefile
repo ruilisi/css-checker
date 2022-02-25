@@ -1,6 +1,6 @@
 VERSION := v0.2.0
 RELEASE_NOTE := "Add CICD and Makefile"
-.PHONY: build
+.PHONY: build test-models
 
 git-tag:
 	git tag -a $(VERSION) -m $(RELEASE_NOTE)
@@ -11,3 +11,6 @@ release: git-tag
 
 build:
 	go build -o "css-checker"
+
+test-models:
+	gotestsum --format testname --

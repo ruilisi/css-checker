@@ -1,6 +1,37 @@
 ---
 kind: pipeline
 type: kubernetes
+name: CICD
+
+platform:
+  os: linux
+  arch: arm64
+
+workspace:
+  path: /drone/src
+
+trigger:
+  ref:
+    - refs/tags/**
+    - refs/heads/**
+  event:
+    exclude:
+      - promote
+  branch:
+    exclude:
+      - test
+
+steps:
+  - name: test-models
+    image: ccr.ccs.tencentyun.com/ruilisi-pub/golang-ci:1.16
+    commands:
+      - make test-models
+    environment:
+      GOPROXY: https://goproxy.cn,direct
+
+---
+kind: pipeline
+type: kubernetes
 name: sync-to-github
 
 platform:
