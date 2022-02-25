@@ -1,16 +1,28 @@
 # CSS CHECKER
 
-## Install (Go 1.18)
-`go install github.com/ruilisi/css-checker`
+`css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or similar css between files and to work well for both local development, and for automation like CI.
 
-## Build & Release
-* `make build`
-* `make release`
+Colors check, long scripts warning of css are also supported by default in this package to help developers to refect their css files. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
+
+## Install
+
+`go install github.com/ruilisi/css-checker` (With go version before 1.17, use `go get github.com/ruilisi/css-checker`). Or download from [releases](https://github.com/ruilisi/css-checker/releases)
 
 ## Usage
 
 #### Run
-* `cd PROJECT_WITH_CSS_FILES; css-checker`
+
+- `cd PROJECT_WITH_CSS_FILES` and just run: `css-checker`
+
+(This can check simularities between classes, and show the diff among simullar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
+
+![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
+
+Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
+
+#### Run with path and ignores
+
+- `css-checker -path=YOUR_PROJECT_PATH -ignores=node_modules,packages`
 
 #### Basic commands
 
@@ -55,3 +67,9 @@ Check colors in HEX/RGB/RGBA/HSL/HSLA that used more then once in your code. As 
 #### Duplicated CSS Classes:
 
 Similar to `Similarity Check` but put those classes that are total identical to each other.
+
+## Build & Release
+
+- `make test-models`
+- `make build`
+- `make release`
