@@ -8,7 +8,7 @@ import (
 	"strings"
 )
 
-func WalkMatch(root, pattern string, ignores []string) ([]string, error) {
+func WalkMatch(root string, patterns, ignores []string) ([]string, error) {
 	var matches []string
 	reg := regexp.MustCompile(strings.Join(ignores, "|"))
 	fmt.Println(reg)
@@ -22,10 +22,13 @@ func WalkMatch(root, pattern string, ignores []string) ([]string, error) {
 		if len(ignores) > 0 && len(reg.FindStringSubmatch(path)) > 0 {
 			return nil
 		}
-		if matched, err := filepath.Match(pattern, filepath.Base(path)); err != nil {
-			return err
-		} else if matched {
-			matches = append(matches, path)
+		for _, pattern := range patterns {
+			if matched, err := filepath.Match(pattern, filepath.Base(path)); err != nil {
+				return err
+			} else if matched {
+				matches = append(matches, path)
+				break
+			}
 		}
 		return nil
 	})

@@ -94,3 +94,16 @@ func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 		fmt.Printf(InfoColor, "No duplicated long script found\n")
 	}
 }
+
+func UnusedScriptsWarning(scripts []StyleSection) {
+	if len(scripts) > 0 {
+		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d css found not used.\n", len(scripts)))
+		for index, script := range scripts {
+			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
+			fmt.Printf(DebugColor, fmt.Sprintf("%s < %s\n", script.name, script.filePath))
+		}
+	} else {
+		fmt.Printf(DebugColor, "√\t")
+		fmt.Printf(InfoColor, "No unused script found\n")
+	}
+}

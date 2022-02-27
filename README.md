@@ -2,21 +2,32 @@
 
 `css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or similar css between files and to work well for both local development, and for automation like CI.
 
-Colors check, long scripts warning of css are also supported by default in this package to help developers to refect their css files. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
+Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
 
 ## Install
 
-`go install github.com/ruilisi/css-checker` (With go version before 1.17, use `go get github.com/ruilisi/css-checker`). Or download from [releases](https://github.com/ruilisi/css-checker/releases)
+```
+go install github.com/ruilisi/css-checker
+```
+(With go version before 1.17, use `go get github.com/ruilisi/css-checker`). Or download from [releases](https://github.com/ruilisi/css-checker/releases)
 
 ## Usage
 
 #### Run
 
-- `cd PROJECT_WITH_CSS_FILES` and just run: `css-checker`
+- `cd PROJECT_WITH_CSS_FILES` and just run:
+```
+css-checker
+```
 
-(This can check simularities between classes, and show the diff among simullar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
+- (Alpha Feature: Find classes that not referred by your js/jsx/ts/tsx/html code): `css-checker -path=[YOUR_PROJECT_PATH] -unused`
+
+- (To Set your project path and ignore paths): `css-checker -path=[YOUR_PROJECT_PATH] -ignores=node_modules,packages,others*`
+
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
+
+(Check and show the diff among simullar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
 
 Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
 

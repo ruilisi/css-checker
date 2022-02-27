@@ -31,6 +31,7 @@ type Params struct {
 	path             string
 	longScriptLength int
 	ignores          []string
+	unused           bool
 }
 
 var params = Params{
@@ -164,6 +165,7 @@ func ParamsParse() {
 	flag.BoolVar(&params.sectionsCheck, "sections", true, "whether to check css class duplications")
 	flag.BoolVar(&params.similarityCheck, "sim", true, "whether to check similar css classes (>=80% && < 100%)")
 	flag.BoolVar(&params.longScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
+	flag.BoolVar(&params.unused, "unused", false, "whether to check unused classes (Beta)")
 	flag.IntVar(&params.longScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
 	flag.Parse()
 	if len(ignorePathsString) > 0 {
@@ -185,7 +187,7 @@ func main() {
 		}
 		params.path = strings.Replace(params.path, "~", dirname, 1) // 通过flags拿到的路径中~并不会被转译为$HOME导致读取文件错误
 	}
-	files, err := WalkMatch(params.path, "*.css", params.ignores)
+	files, err := WalkMatch(params.path, []string{"*.css"}, params.ignores)
 	if err != nil {
 		fmt.Printf(ErrorColor, fmt.Sprintf("No css files found at given path: %s", params.path))
 		return
@@ -202,6 +204,7 @@ func main() {
 
 	dupScripts, dupColors, dupSections := []ScriptSummary{}, []ScriptSummary{}, []SectionSummary{}
 	similaritySummarys := []SimilaritySummary{}
+	notFoundSections := []StyleSection{}
 	if params.longScriptsCheck {
 		dupScripts = DupScriptsChecker(longScriptList)
 		LongScriptsWarning(dupScripts)
@@ -218,9 +221,15 @@ func main() {
 		similaritySummarys = getSimilarSections()
 		SimilarSectionsWarning(similaritySummarys)
 	}
+
+	if params.unused {
+		notFoundSections = UnusedClassesChecker()
+		UnusedScriptsWarning(notFoundSections)
+	}
+
 	t2 := time.Now()
 
-	fmt.Printf(DebugColor, fmt.Sprintln("Css Scan Completed."))
+	fmt.Printf(DebugColor, fmt.Sprintf("\nCss Scan Completed.\n"))
 	if params.longScriptsCheck && len(dupScripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated long script values\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupScripts)))))
 	}
@@ -232,6 +241,9 @@ func main() {
 	}
 	if params.similarityCheck && len(dupSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s similar css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(similaritySummarys)))))
+	}
+	if params.unused && len(notFoundSections) > 0 {
+		fmt.Printf(WarningColor, fmt.Sprintf("Found %s css classes not referred in your js/jsx/ts/tsx/htm/html code\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(notFoundSections)))))
 	}
 
 	diff := t2.Sub(t1)

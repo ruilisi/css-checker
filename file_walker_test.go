@@ -7,7 +7,7 @@ import (
 )
 
 func TestFileWalker(t *testing.T) {
-	files, err := WalkMatch("tests", "*.css", []string{})
+	files, err := WalkMatch("tests", []string{"*.css"}, []string{})
 	assert.NoError(t, err)
 	assert.Equal(t, len(files), 2)
 }
