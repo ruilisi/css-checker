@@ -7,8 +7,9 @@ Colors check, long scripts, unused CSS classes warning of css are also supported
 ## Install
 
 ```
-go install github.com/ruilisi/css-checker
+go install github.com/ruilisi/css-checker@latest
 ```
+
 (With go version before 1.17, use `go get github.com/ruilisi/css-checker`). Or download from [releases](https://github.com/ruilisi/css-checker/releases)
 
 ## Usage
@@ -16,6 +17,7 @@ go install github.com/ruilisi/css-checker
 #### Run
 
 - `cd PROJECT_WITH_CSS_FILES` and just run:
+
 ```
 css-checker
 ```
@@ -23,7 +25,6 @@ css-checker
 - (Alpha Feature: Find classes that not referred by your js/jsx/ts/tsx/html code): `css-checker -path=[YOUR_PROJECT_PATH] -unused`
 
 - (To Set your project path and ignore paths): `css-checker -path=[YOUR_PROJECT_PATH] -ignores=node_modules,packages,others*`
-
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
