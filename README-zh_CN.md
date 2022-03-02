@@ -1,5 +1,19 @@
-# CSS CHECKER
+<p align="center">
+  <a href="https://ruilisi.com/">
+    <img alt="CSS-CHECKER" src="https://assets.ruilisi.com/cgULF9oHro3e1kSHXTfZYA==" width="211"/>
+  </a>
+</p>
+<h1 align="center">Css Checker - 检查css，使之完美</h1>
+<p align="center">
+  <a href="https://drone.ruilisi.com/ruilisi/css-checker" title="Build Status">
+    <img src="https://drone.ruilisi.com/api/badges/ruilisi/css-checker/status.svg?ref=refs/heads/master">
+  </a>
+</p>
+<p align="center">
+  <a href="README-zh_CN.md">查看英文README</a>
+</p>
 
+## 目标
 `css_checker` 会检查 css 样式是否存在重复，并找出它们之间的差异 `css classes` 在几秒钟内具有高度相似性。它的设计目的是避免文件之间出现冗余或类似的 css，并在本地开发和 CI 等自动化方面都能很好地工作。
 
 默认情况下，该软件包还支持颜色检查、长脚本和 css 警告，以帮助开发人员重新选择 css 文件。该项目由[协码啦团队](`https://xiemala.com`)，它有助于为该项目的开发人员删除数百个类似的 css 类。

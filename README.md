@@ -1,5 +1,19 @@
-# CSS CHECKER
+<p align="center">
+  <a href="https://ruilisi.com/">
+    <img alt="CSS-CHECKER" src="https://assets.ruilisi.com/cgULF9oHro3e1kSHXTfZYA==" width="211"/>
+  </a>
+</p>
+<h1 align="center">Css Checker - Check css, perfect it</h1>
+<p align="center">
+  <a href="https://drone.ruilisi.com/ruilisi/css-checker" title="Build Status">
+    <img src="https://drone.ruilisi.com/api/badges/ruilisi/css-checker/status.svg?ref=refs/heads/master">
+  </a>
+</p>
+<p align="center">
+  <a href="README-zh_CN.md">View the chinese version README</a>
+</p>
 
+## Purpose
 `css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or similar css between files and to work well for both local development, and for automation like CI.
 
 Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
