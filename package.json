@@ -1,0 +1,30 @@
+{
+  "name": "css-checker-kit",
+  "version": "0.3.1",
+  "description": "Find and Reduce Similar & Duplicated CSS Scripts",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "postinstall": "go-npm install",
+    "preuninstall": "go-npm uninstall"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ruilisi/css-checker.git"
+  },
+  "keywords": ["css", "code-quality", "cicd", "redundancy-analysis"],
+  "author": "ruilisi",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ruilisi/css-checker/issues"
+  },
+  "homepage": "https://github.com/ruilisi/css-checker#readme",
+  "dependencies": {
+    "go-npm": "^0.1.9"
+  },
+  "goBinary": {
+    "name": "css-checker",
+    "path": "./bin",
+    "url": "https://github.com/ruilisi/css-checker/releases/download/v0.3.1/css-checker_0.3.1_{{platform}}_{{arch}}.tar.gz"
+  }
+}
