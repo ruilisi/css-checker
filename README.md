@@ -3,14 +3,14 @@
     <img alt="CSS-CHECKER" src="https://assets.ruilisi.com/cgULF9oHro3e1kSHXTfZYA==" width="211"/>
   </a>
 </p>
-<h1 align="center">Css Checker - Check css, perfect it</h1>
+<h1 align="center">Css Checker - Less is More</h1>
 <p align="center">
   <a href="https://drone.ruilisi.com/ruilisi/css-checker" title="Build Status">
     <img src="https://drone.ruilisi.com/api/badges/ruilisi/css-checker/status.svg?ref=refs/heads/master">
   </a>
 </p>
 <p align="center">
-  <a href="README-zh_CN.md">View the chinese version README</a>
+  <a href="README-zh_CN.md">View the 中文文档</a>
 </p>
 
 ## Purpose
@@ -20,11 +20,17 @@ Colors check, long scripts, unused CSS classes warning of css are also supported
 
 ## Install
 
+#### Using Go
 ```
 go install github.com/ruilisi/css-checker@latest
 ```
 
 (With go version before 1.17, use `go get github.com/ruilisi/css-checker`). Or download from [releases](https://github.com/ruilisi/css-checker/releases)
+
+#### Using npm
+```
+npm install -g css-checker-kit
+```
 
 ## Usage
 

@@ -3,28 +3,34 @@
     <img alt="CSS-CHECKER" src="https://assets.ruilisi.com/cgULF9oHro3e1kSHXTfZYA==" width="211"/>
   </a>
 </p>
-<h1 align="center">Css Checker - 检查css，使之完美</h1>
+<h1 align="center">Css Checker - 让CSS小而美</h1>
 <p align="center">
   <a href="https://drone.ruilisi.com/ruilisi/css-checker" title="Build Status">
     <img src="https://drone.ruilisi.com/api/badges/ruilisi/css-checker/status.svg?ref=refs/heads/master">
   </a>
 </p>
 <p align="center">
-  <a href="README-zh_CN.md">查看英文README</a>
+  <a href="README-zh_CN.md">查看README in English</a>
 </p>
 
 ## 目标
 `css_checker` 会检查 css 样式是否存在重复，并找出它们之间的差异 `css classes` 在几秒钟内具有高度相似性。它的设计目的是避免文件之间出现冗余或类似的 css，并在本地开发和 CI 等自动化方面都能很好地工作。
 
-默认情况下，该软件包还支持颜色检查、长脚本和 css 警告，以帮助开发人员重新选择 css 文件。该项目由[协码啦团队](`https://xiemala.com`)，它有助于为该项目的开发人员删除数百个类似的 css 类。
+默认情况下，该软件包还支持颜色检查、长脚本和 未被使用的css 警告，以帮助开发人员优化 css 文件。该项目由[协码啦团队](`https://xiemala.com`)开发，它该项目优化了数百个冗余的 css 类。
 
-## 安装
+## 安装(以下二选一)
 
+#### 使用go install
 ```
 go install github.com/ruilisi/css-checker@latest
 ```
 
-(`go install github.com/ruilisi/css-checker`对于 go 1.17 之前的版本，请使用 `go get github.com/ruilisi/css-checker`)。或者从[releases](https://github.com/ruilisi/css-checker/releases)下载。
+(对于 go 1.17 之前的版本，请使用 `go get github.com/ruilisi/css-checker`)。或者从[releases](https://github.com/ruilisi/css-checker/releases)下载。
+
+#### 使用npm
+```
+npm install -g css-checker-kit
+```
 
 ## 用法
 
@@ -36,8 +42,8 @@ go install github.com/ruilisi/css-checker@latest
 css-checker
 ```
 
-- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码未引用的类）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
-- （要设置项目路径并忽略路径）: `css-checker -path=[YOUR_PROJECT_PATH] -ignores=node_modules,packages,others*`
+- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码未引用的class）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
+- （要设置项目路径及忽略路径）: `css-checker -path=[YOUR_PROJECT_PATH] -ignores=node_modules,packages,others*`
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
@@ -51,7 +57,7 @@ css-checker
 
 #### 基本命令
 
-- `-help`: 输出帮助和退出
+- `-help`: 输出帮助并退出
 - `-colors`: 是否检查颜色（默认为 true）
 - `-ignores`: 输出被忽略的路径和文件(e.g. node_modules,\*.example.css)
 - `-length-threshold`: 一个被认为是长脚本行（默认为 20）的单一样式值的最小整型长度（不包括键）
@@ -60,6 +66,7 @@ css-checker
 - `-sections`: 是否检查部分重复（默认为 true）
 - `-sim`: 是否检查类似的 CSS 类（>=80% && <100%)(默认为 true)
 - `-version`: 输出现在的版本和退出
+- `-unused`: 检查未被使用的CSS class (默认为false, Beta功能)
 
 #### 输出:
 
