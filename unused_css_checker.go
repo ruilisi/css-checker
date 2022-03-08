@@ -16,7 +16,7 @@ func JSClassNamesSplit(r rune) bool {
 }
 
 func UnusedClassesChecker() []StyleSection {
-	files, err := WalkMatch(params.path, []string{"*.js", "*.jsx", "*.ts", "*.tsx", "*.html", "*.htm"}, params.ignores)
+	files, err := WalkMatch(params.Path, WalkMatchOptions{patterns: []string{"*.js", "*.jsx", "*.ts", "*.tsx", "*.html", "*.htm"}, ignores: params.Ignores})
 	notFoundSections := []StyleSection{}
 	if err != nil {
 		return notFoundSections

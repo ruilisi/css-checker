@@ -1,0 +1,4 @@
+long-line: false
+color: false
+unused: true
+length-threshold: 25

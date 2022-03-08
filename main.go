@@ -4,10 +4,13 @@ import (
 	"flag"
 	"fmt"
 	"hash/fnv"
+	"io/ioutil"
 	"os"
 	"sort"
 	"strings"
 	"time"
+
+	"gopkg.in/yaml.v3"
 )
 
 const (
@@ -23,25 +26,27 @@ const (
 )
 
 type Params struct {
-	version          bool
-	colorsCheck      bool
-	sectionsCheck    bool
-	similarityCheck  bool
-	longScriptsCheck bool
-	path             string
-	longScriptLength int
-	ignores          []string
-	unused           bool
+	Version          bool     `yaml:"version"`
+	ColorsCheck      bool     `yaml:"colors"`
+	SectionsCheck    bool     `yaml:"sections"`
+	SimilarityCheck  bool     `yaml:"sim"`
+	LongScriptsCheck bool     `yaml:"long-line"`
+	Path             string   `yaml:"path"`
+	LongScriptLength int      `yaml:"length-threshold"`
+	Ignores          []string `yaml:"ignores"`
+	Unused           bool     `yaml:"unused"`
+	Unrestricted     bool     `yaml:"unrestricted"`
+	ConfigPath       string   `yaml:"config"`
 }
 
 var params = Params{
-	version:          false,
-	colorsCheck:      true,
-	sectionsCheck:    true,
-	longScriptsCheck: true,
-	path:             ".",
-	longScriptLength: 20,
-	ignores:          []string{},
+	Version:          false,
+	ColorsCheck:      true,
+	SectionsCheck:    true,
+	LongScriptsCheck: true,
+	Path:             ".",
+	LongScriptLength: 20,
+	Ignores:          []string{},
 }
 
 // StyleSection ...
@@ -156,45 +161,79 @@ func getSimilarSections() []SimilaritySummary {
 	return summary
 }
 
+// return values: (error, isConfigFileFound)
+func getConf(conf *Params, path string) (error, bool) {
+	buf, err := ioutil.ReadFile(path)
+	if err != nil {
+		return nil, false // no config file is not an error
+	}
+
+	fmt.Printf("Config YAML found, using configs in: %s\n", path)
+	err = yaml.Unmarshal(buf, conf)
+	if err != nil {
+		fmt.Printf(ErrorColor, fmt.Sprintf("Config Error: in file %q: %v\n", path, err)) // config file in wrong format is an error
+		return err, true
+	}
+	return nil, true
+}
+
 func ParamsParse() {
 	ignorePathsString := ""
-	flag.BoolVar(&params.version, "version", false, "prints current version and exits")
-	flag.StringVar(&params.path, "path", ".", "set path to files, default to be current folder")
+	flag.BoolVar(&params.ColorsCheck, "colors", true, "whether to check colors")
 	flag.StringVar(&ignorePathsString, "ignores", "", "paths and files to be ignored (e.g. node_modules,*.example.css)")
-	flag.BoolVar(&params.colorsCheck, "colors", true, "whether to check colors")
-	flag.BoolVar(&params.sectionsCheck, "sections", true, "whether to check css class duplications")
-	flag.BoolVar(&params.similarityCheck, "sim", true, "whether to check similar css classes (>=80% && < 100%)")
-	flag.BoolVar(&params.longScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
-	flag.BoolVar(&params.unused, "unused", false, "whether to check unused classes (Beta)")
-	flag.IntVar(&params.longScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
+	flag.IntVar(&params.LongScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
+	flag.BoolVar(&params.LongScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
+	flag.StringVar(&params.Path, "path", ".", "set path to files, default to be current folder")
+	flag.BoolVar(&params.SectionsCheck, "sections", true, "whether to check css class duplications")
+	flag.BoolVar(&params.SimilarityCheck, "sim", true, "whether to check similar css classes (>=80% && < 100%)")
+	flag.BoolVar(&params.Unrestricted, "unrestricted", false, "search all files (gitignore)")
+	flag.BoolVar(&params.Unused, "unused", false, "whether to check unused classes (Beta)")
+	flag.BoolVar(&params.Version, "version", false, "prints current version and exits")
+	flag.StringVar(&params.ConfigPath, "config", "", "set configuration file, check github.com/ruilisi/css-checker for details")
 	flag.Parse()
 	if len(ignorePathsString) > 0 {
-		params.ignores = strings.Split(ignorePathsString, ",")
+		params.Ignores = strings.Split(ignorePathsString, ",")
+	}
+	dirname, err := os.UserHomeDir()
+	if err != nil {
+		fmt.Printf(ErrorColor, "Home path not found")
+	}
+	if strings.Contains(params.Path, "~") {
+		params.Path = strings.Replace(params.Path, "~", dirname, 1) // 通过flags拿到的路径中~并不会被转译为$HOME导致读取文件错误
+	}
+	if strings.Contains(params.ConfigPath, "~") {
+		params.ConfigPath = strings.Replace(params.ConfigPath, "~", dirname, 1)
 	}
 }
 
 func main() {
 	t1 := time.Now()
 	ParamsParse()
-	if params.version {
+	if params.Version {
 		fmt.Printf("Version: v%s\n", Version)
 		return
 	}
-	if strings.Contains(params.path, "~") {
-		dirname, err := os.UserHomeDir()
-		if err != nil {
-			fmt.Printf(ErrorColor, "Home path not found")
-		}
-		params.path = strings.Replace(params.path, "~", dirname, 1) // 通过flags拿到的路径中~并不会被转译为$HOME导致读取文件错误
+
+	// Read Config File
+	configPath := params.ConfigPath
+	if len(params.ConfigPath) == 0 {
+		configPath = fmt.Sprintf("css-checker.yaml")
 	}
-	files, err := WalkMatch(params.path, []string{"*.css"}, params.ignores)
+	err, found := getConf(&params, configPath)
 	if err != nil {
-		fmt.Printf(ErrorColor, fmt.Sprintf("No css files found at given path: %s", params.path))
+		return // config file in wrong format
+	}
+
+	// File Walk Starts
+	files, err := WalkMatch(params.Path, WalkMatchOptions{patterns: []string{"*.css"}, ignores: params.Ignores, unrestricted: params.Unrestricted})
+	if err != nil {
+		fmt.Printf(ErrorColor, fmt.Sprintf("No css files found at given path: %s", params.Path))
 		return
 	}
-	fmt.Println("\nChecking starts. this may take minutes to scan.")
+	fmt.Println("\nChecking starts. this may take seconds.")
 	fmt.Printf(NoticeColor, fmt.Sprintf("Found %d css files. Begin to scan.\n", len(files)))
 
+	// CSS Parsing
 	for _, path := range files {
 		longScripts, colorScripts := SectionsParse(path)
 		longScriptList = append(longScriptList, longScripts...)
@@ -202,50 +241,55 @@ func main() {
 	}
 	fmt.Printf(DebugColor, fmt.Sprintf("Found %d css sections. Begin to compare.\n", len(styleList)))
 
+	// Begin Checking
 	dupScripts, dupColors, dupSections := []ScriptSummary{}, []ScriptSummary{}, []SectionSummary{}
 	similaritySummarys := []SimilaritySummary{}
 	notFoundSections := []StyleSection{}
-	if params.longScriptsCheck {
+	if params.LongScriptsCheck {
 		dupScripts = DupScriptsChecker(longScriptList)
 		LongScriptsWarning(dupScripts)
 	}
-	if params.colorsCheck {
+	if params.ColorsCheck {
 		dupColors = DupScriptsChecker(colorScriptList)
 		ColorScriptsWarning(dupColors)
 	}
-	if params.sectionsCheck {
+	if params.SectionsCheck {
 		dupSections = DupStyleSectionsChecker(styleList)
 		StyleSectionsWarning(dupSections)
 	}
-	if params.similarityCheck {
+	if params.SimilarityCheck {
 		similaritySummarys = getSimilarSections()
 		SimilarSectionsWarning(similaritySummarys)
 	}
 
-	if params.unused {
+	if params.Unused {
 		notFoundSections = UnusedClassesChecker()
 		UnusedScriptsWarning(notFoundSections)
 	}
 
 	t2 := time.Now()
 
+	// Results ...
 	fmt.Printf(DebugColor, fmt.Sprintf("\nCss Scan Completed.\n"))
-	if params.longScriptsCheck && len(dupScripts) > 0 {
+	if params.LongScriptsCheck && len(dupScripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated long script values\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupScripts)))))
 	}
-	if params.colorsCheck && len(dupColors) > 0 {
+	if params.ColorsCheck && len(dupColors) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated colors\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupColors)))))
 	}
-	if params.sectionsCheck && len(dupSections) > 0 {
+	if params.SectionsCheck && len(dupSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupSections)))))
 	}
-	if params.similarityCheck && len(dupSections) > 0 {
+	if params.SimilarityCheck && len(dupSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s similar css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(similaritySummarys)))))
 	}
-	if params.unused && len(notFoundSections) > 0 {
+	if params.Unused && len(notFoundSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s css classes not referred in your js/jsx/ts/tsx/htm/html code\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(notFoundSections)))))
 	}
 
 	diff := t2.Sub(t1)
+	if !found {
+		fmt.Println("Checking completed, you can also create a css-checker.yaml file to customize your scan.")
+	}
 	fmt.Println("Time consumed (not including printing process): ", diff)
 }

@@ -54,7 +54,7 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 				key := strings.TrimSpace(partials[0])
 				value := strings.TrimSpace(partials[1])
 				// Check is Long Script
-				if len(value) > params.longScriptLength && !strings.Contains(value, "var") {
+				if len(value) > params.LongScriptLength && !strings.Contains(value, "var") {
 					longScriptList = append(longScriptList, Script{filePath: filePath,
 						sectionName: styleSection.name,
 						hashValue:   hash(value),
