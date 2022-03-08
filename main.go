@@ -26,17 +26,18 @@ const (
 )
 
 type Params struct {
-	Version          bool     `yaml:"version"`
-	ColorsCheck      bool     `yaml:"colors"`
-	SectionsCheck    bool     `yaml:"sections"`
-	SimilarityCheck  bool     `yaml:"sim"`
-	LongScriptsCheck bool     `yaml:"long-line"`
-	Path             string   `yaml:"path"`
-	LongScriptLength int      `yaml:"length-threshold"`
-	Ignores          []string `yaml:"ignores"`
-	Unused           bool     `yaml:"unused"`
-	Unrestricted     bool     `yaml:"unrestricted"`
-	ConfigPath       string   `yaml:"config"`
+	Version             bool     `yaml:"version"`
+	ColorsCheck         bool     `yaml:"colors"`
+	SectionsCheck       bool     `yaml:"sections"`
+	SimilarityCheck     bool     `yaml:"sim"`
+	SimilarityThreshold int      `yaml:"sim-threshold"`
+	LongScriptsCheck    bool     `yaml:"long-line"`
+	Path                string   `yaml:"path"`
+	LongScriptLength    int      `yaml:"length-threshold"`
+	Ignores             []string `yaml:"ignores"`
+	Unused              bool     `yaml:"unused"`
+	Unrestricted        bool     `yaml:"unrestricted"`
+	ConfigPath          string   `yaml:"config"`
 }
 
 var params = Params{
@@ -137,10 +138,11 @@ func getSimilarSections() []SimilaritySummary {
 	}
 
 	// In map: [SectionIndex1][SectionIndex2] -> Duplicated Hashes, number of the duplicated hashes stands for duplicated lines between classes.
+	threshold := float32(params.SimilarityThreshold) / float32(100)
 	for key, element := range records {
 		left, right := styleList[key[0]], styleList[key[1]]
 		lengthLeft, lengthRight := len(left.value), len(right.value)
-		if float32(len(element)) > float32(lengthLeft)*0.8 || float32(len(element)) > float32(lengthRight)*0.8 {
+		if float32(len(element)) > float32(lengthLeft)*threshold || float32(len(element)) > float32(lengthRight)*threshold {
 			if len(element) == min(lengthLeft, lengthRight) {
 				continue
 			}
@@ -185,7 +187,8 @@ func ParamsParse() {
 	flag.BoolVar(&params.LongScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
 	flag.StringVar(&params.Path, "path", ".", "set path to files, default to be current folder")
 	flag.BoolVar(&params.SectionsCheck, "sections", true, "whether to check css class duplications")
-	flag.BoolVar(&params.SimilarityCheck, "sim", true, "whether to check similar css classes (>=80% && < 100%)")
+	flag.BoolVar(&params.SimilarityCheck, "sim", true, "whether to check similar css classes")
+	flag.IntVar(&params.SimilarityThreshold, "sim-threshold", 80, "Threshold for Similarity Check (int only, >=20 && < 100, e.g. 80 for 80%)")
 	flag.BoolVar(&params.Unrestricted, "unrestricted", false, "search all files (gitignore)")
 	flag.BoolVar(&params.Unused, "unused", false, "whether to check unused classes (Beta)")
 	flag.BoolVar(&params.Version, "version", false, "prints current version and exits")
@@ -203,6 +206,11 @@ func ParamsParse() {
 	}
 	if strings.Contains(params.ConfigPath, "~") {
 		params.ConfigPath = strings.Replace(params.ConfigPath, "~", dirname, 1)
+	}
+	if params.SimilarityThreshold < 20 {
+		params.SimilarityThreshold = 20
+	} else if params.SimilarityThreshold >= 100 {
+		params.SimilarityThreshold = 99
 	}
 }
 
@@ -235,7 +243,7 @@ func main() {
 
 	// CSS Parsing
 	for _, path := range files {
-		longScripts, colorScripts := SectionsParse(path)
+		longScripts, colorScripts := SectionsParse(path, params.SimilarityThreshold)
 		longScriptList = append(longScriptList, longScripts...)
 		colorScriptList = append(colorScriptList, colorScripts...)
 	}
@@ -259,7 +267,7 @@ func main() {
 	}
 	if params.SimilarityCheck {
 		similaritySummarys = getSimilarSections()
-		SimilarSectionsWarning(similaritySummarys)
+		SimilarSectionsWarning(similaritySummarys, params.SimilarityThreshold)
 	}
 
 	if params.Unused {
@@ -280,8 +288,8 @@ func main() {
 	if params.SectionsCheck && len(dupSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s duplicated css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(dupSections)))))
 	}
-	if params.SimilarityCheck && len(dupSections) > 0 {
-		fmt.Printf(WarningColor, fmt.Sprintf("Found %s similar css classes\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(similaritySummarys)))))
+	if params.SimilarityCheck && len(similaritySummarys) > 0 {
+		fmt.Printf(WarningColor, fmt.Sprintf("Found %s similar css classes (%d%% <= sim < 100%%)\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(similaritySummarys))), params.SimilarityThreshold))
 	}
 	if params.Unused && len(notFoundSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("Found %s css classes not referred in your js/jsx/ts/tsx/htm/html code\n", fmt.Sprintf(ErrorColor, fmt.Sprintf("%d", len(notFoundSections)))))

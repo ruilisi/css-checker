@@ -7,9 +7,9 @@ import (
 	"github.com/mazznoer/csscolorparser"
 )
 
-func SimilarSectionsWarning(similaritySummarys []SimilaritySummary) {
+func SimilarSectionsWarning(similaritySummarys []SimilaritySummary, sim int) {
 	if len(similaritySummarys) > 0 {
-		fmt.Printf(WarningColor, fmt.Sprintf("\n%d similar css classes found as follow ( >= 80%% && < 100%% ).\n", len(similaritySummarys)))
+		fmt.Printf(WarningColor, fmt.Sprintf("\n%d similar css classes found as follow (%d%% <= sim < 100%%)\n.\n", len(similaritySummarys), sim))
 		for index, summary := range similaritySummarys {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(ErrorColor, fmt.Sprintf("Sections share %d per cent similarity:\n", summary.similarity))
@@ -29,7 +29,7 @@ func SimilarSectionsWarning(similaritySummarys []SimilaritySummary) {
 		fmt.Printf(WarningColor, fmt.Sprintf("For above classes, %s stands for duplicated lines\n\n\n", fmt.Sprintf(DebugColor, "Cyan Color")))
 	} else {
 		fmt.Printf(DebugColor, "√\t")
-		fmt.Printf(InfoColor, "No similar css class found (with >80%% simularity)\n")
+		fmt.Printf(InfoColor, fmt.Sprintf("No similar css class found (%d%% <= sim < 100%%)\n", sim))
 	}
 }
 

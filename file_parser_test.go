@@ -22,7 +22,7 @@ func TestClassSectionsProcessor(t *testing.T) {
 	sectionsCounts := []int{4, 7}
 	styleList = []StyleSection{}
 	for index, file := range files {
-		longScriptList, colorScriptList = SectionsParse(file)
+		longScriptList, colorScriptList = SectionsParse(file, 80)
 		assert.Equal(t, len(longScriptList), 1)
 		assert.Equal(t, longScriptList[0].key, "transition")
 		assert.Equal(t, len(colorScriptList), colorCounts[index])

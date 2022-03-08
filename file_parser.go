@@ -1,6 +1,7 @@
 package main
 
 import (
+	"math"
 	"os"
 	"regexp"
 	"sort"
@@ -11,7 +12,7 @@ import (
 )
 
 // SectionsParse returns LongScripts and ColorScripts
-func SectionsParse(filePath string) ([]Script, []Script) {
+func SectionsParse(filePath string, sim int) ([]Script, []Script) {
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
 		return []Script{}, []Script{}
@@ -37,7 +38,7 @@ func SectionsParse(filePath string) ([]Script, []Script) {
 				styleList = append(styleList, styleSection)
 			}
 			// Generate hashes for each line in class, for similarity compare
-			if len(styleSection.value) >= 5 {
+			if len(styleSection.value) >= int(math.Ceil(float64(100)/float64(100-sim))) {
 				for _, value := range styleSection.value {
 					hashValue := hash(value)
 					if counter, found := hashCounters[hashValue]; found {

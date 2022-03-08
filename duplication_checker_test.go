@@ -11,7 +11,7 @@ func TestDuplicatedScriptsCheck(t *testing.T) { // same for colors and long scri
 	files := []string{"tests/normal_css.css", "tests/unformatcss.css"}
 	longScriptList, colorScriptList := []Script{}, []Script{}
 	for _, file := range files {
-		longs, colors := SectionsParse(file)
+		longs, colors := SectionsParse(file, 80)
 		longScriptList = append(longScriptList, longs...)
 		colorScriptList = append(colorScriptList, colors...)
 	}
