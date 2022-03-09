@@ -13,28 +13,31 @@
   <a href="README-zh_CN.md">查看README in English</a>
 </p>
 
-## 目标
+## 目标：
+
 `css_checker` 会检查 css 样式是否存在重复，并找出它们之间的差异 `css classes` 在几秒钟内具有高度相似性。它的设计目的是避免文件之间出现冗余或类似的 css，并在本地开发和 CI 等自动化方面都能很好地工作。
 
-默认情况下，该软件包还支持颜色检查、长脚本和 未被使用的css 警告，以帮助开发人员优化 css 文件。该项目由[协码啦团队](`https://xiemala.com`)开发，它该项目优化了数百个冗余的 css 类。
+默认情况下，该软件包还支持颜色检查、长脚本和 未被使用的 css 警告，以帮助开发人员优化 css 文件。该项目由[协码啦团队](`https://xiemala.com`)开发，它该项目优化了数百个冗余的 css 类。
 
-## 安装(以下二选一)
+## 安装(以下二选一)：
 
-#### 使用go install
+#### 使用 go install:
+
 ```
 go install github.com/ruilisi/css-checker@latest
 ```
 
 (对于 go 1.17 之前的版本，请使用 `go get github.com/ruilisi/css-checker`)。或者从[releases](https://github.com/ruilisi/css-checker/releases)下载。
 
-#### 使用npm
+#### 使用 npm:
+
 ```
 npm install -g css-checker-kit
 ```
 
-## 用法
+## 用法:
 
-#### 运行
+#### 运行:
 
 - `cd PROJECT_WITH_CSS_FILES` 并且直接运行:
 
@@ -42,7 +45,7 @@ npm install -g css-checker-kit
 css-checker
 ```
 
-- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码未引用的class）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
+- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码未引用的 class）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
 - （要设置项目路径及忽略路径）: `css-checker -path=[YOUR_PROJECT_PATH] -ignores=node_modules,packages,others*`
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
@@ -51,11 +54,22 @@ css-checker
 
 将带有“rgb/rgba/hsl/hsla/hex”的颜色将转换为 rbga 并一起比较。
 
-#### 按路径运行并忽略
+#### 按路径运行:
 
-- `css-checker -path=YOUR_PROJECT_PATH -ignores=node_modules,packages`
+- `css-checker -path=YOUR_PROJECT_PATH`
 
-#### 基本命令
+#### 按路径忽略:
+
+- 用户可将要忽略的文件名填进`gitignore`，`css_check`就会自动忽略这些文件，可通过`-unrestricted=true`来取消忽略。
+- 具体命令可参考下面的基本命令。
+- `-ignores=node_modules,packages`: 用来忽略特定的文件夹。
+
+#### 关于 yaml 文件：
+
+- `css_Checker`参数默认读取`css-checker.example.yaml`用户可在其中直接添加参数并且不需要在参数前面加上`-`。
+- `-config=css-checker. .yaml`: 可在`.`之间输入来重命名文件。
+
+#### 基本命令:
 
 - `-help`: 输出帮助并退出
 - `-colors`: 是否检查颜色（默认为 true）
@@ -66,7 +80,7 @@ css-checker
 - `-sections`: 是否检查部分重复（默认为 true）
 - `-sim`: 是否检查类似的 CSS 类（>=80% && <100%)(默认为 true)
 - `-version`: 输出现在的版本和退出
-- `-unused`: 检查未被使用的CSS class (默认为false, Beta功能)
+- `-unused`: 检查未被使用的 CSS class (默认为 false, Beta 功能)
 
 #### 输出:
 
@@ -80,9 +94,14 @@ css-checker
 
 #### 相似度检查:
 
-检查类之间的相似度(>=80% && < 100%)。这将在类之间打印相同的行。
+- 检查类之间的相似度(>=80% && < 100%)。这将在类之间打印相同的行。
 
 ![image.png](https://assets.ruilisi.com/bzljM=P4Mz+dmtHKNvdHtg==)
+
+#### 相似阈值:
+
+- `-sim-threshold=`: 用户可用来自定义（>=20% && <=60% ）的相似阀值。
+- `yaml:"sections"`: 用户可用该参数设置为完全相似来查询。
 
 #### 长脚本行检查：
 
@@ -92,15 +111,15 @@ css-checker
 
 #### 颜色检查:
 
-检查 HEX/RGB/RGBA/HSL/HSLA 在代码中使用不止一次的颜色。支持不同的主题并可能在未来更新你的颜色集，你可以考虑把它们作为 CSS 的变量。
+- 检查 HEX/RGB/RGBA/HSL/HSLA 在代码中使用不止一次的颜色。支持不同的主题并可能在未来更新你的颜色集，你可以考虑把它们作为 CSS 的变量。
 
 ![image.png](https://assets.ruilisi.com/iqmnGQHwglb+pxE3kr3L1Q==)
 
 #### 重复的 CSS 类:
 
-与`相似度检查`相似，但是会把那些完全相同的类放在一起。
+- 与`相似度检查`相似，但是会把那些完全相同的类放在一起。
 
-## 构建&释放
+## 构建&释放：
 
 - `make test-models`
 - `make build`

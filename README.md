@@ -13,28 +13,31 @@
   <a href="README-zh_CN.md">View the 中文文档</a>
 </p>
 
-## Purpose
+## Purpose：
+
 `css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or similar css between files and to work well for both local development, and for automation like CI.
 
 Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
 
-## Install
+## Install：
 
-#### Using Go
+#### Using Go：
+
 ```
 go install github.com/ruilisi/css-checker@latest
 ```
 
 (With go version before 1.17, use `go get github.com/ruilisi/css-checker`). Or download from [releases](https://github.com/ruilisi/css-checker/releases)
 
-#### Using npm
+#### Using npm：
+
 ```
 npm install -g css-checker-kit
 ```
 
-## Usage
+## Usage：
 
-#### Run
+#### Run：
 
 - `cd PROJECT_WITH_CSS_FILES` and just run:
 
@@ -48,15 +51,26 @@ css-checker
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
-(Check and show the diff among simullar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
+(Check and show the diff among similar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
 
 Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
 
-#### Run with path and ignores
+#### Run with path：
 
-- `css-checker -path=YOUR_PROJECT_PATH -ignores=node_modules,packages`
+- `css-checker -path=YOUR_PROJECT_PATH`
 
-#### Basic commands
+#### Ignore by path:
+
+- The user can fill in the file names to be ignored into `gitignore`and `css_check` will automatically ignore these files, which can be canceled by `-unrestricted=true`.
+- Please refer to the following basic commands for specific commands.
+- `-ignores=node_ Modules,packages `: used to ignore specific folders.
+
+#### About yaml files:
+
+- `css_checker` parameter default reading `CSS checker.example.yaml` users can add parameters directly and do not need to prefix the parameters with `-`.
+- `-config=css-checker. .Yaml `: Files can be renamed by typing between `.`.
+
+#### Basic commands：
 
 - `-help`: prints help and exits
 - `-colors`: whether to check colors (default true)
@@ -82,6 +96,11 @@ Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared toget
 
 Check the similarity (>=80% && < 100%) between classes. This will print the same line in between classes.
 
+#### Similarity threshold:
+
+- `-sim-threshold=`: similar thresholds that the user can use to customize (>=20% && <=60%).
+- `yaml:"sections"`: users can query by setting this parameter to be completely similar.
+
 ![image.png](https://assets.ruilisi.com/bzljM=P4Mz+dmtHKNvdHtg==)
 
 #### Long Script Line Check:
@@ -100,7 +119,7 @@ Check colors in HEX/RGB/RGBA/HSL/HSLA that used more then once in your code. As 
 
 Similar to `Similarity Check` but put those classes that are total identical to each other.
 
-## Build & Release
+## Build & Release：
 
 - `make test-models`
 - `make build`
