@@ -13,13 +13,13 @@
   <a href="README-zh_CN.md">View the 中文文档</a>
 </p>
 
-## Purpose：
+## Purpose
 
 `css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or similar css between files and to work well for both local development, and for automation like CI.
 
 Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
 
-## Install：
+## Install
 
 #### Using Go：
 
@@ -35,9 +35,9 @@ go install github.com/ruilisi/css-checker@latest
 npm install -g css-checker-kit
 ```
 
-## Usage：
+## Usage
 
-#### Run：
+#### Run
 
 - `cd PROJECT_WITH_CSS_FILES` and just run:
 
@@ -45,9 +45,7 @@ npm install -g css-checker-kit
 css-checker
 ```
 
-- (Alpha Feature: Find classes that not referred by your js/jsx/ts/tsx/html code): `css-checker -path=[YOUR_PROJECT_PATH] -unused`
-
-- (To Set your project path and ignore paths): `css-checker -path=[YOUR_PROJECT_PATH] -ignores=node_modules,packages,others*`
+- (Alpha Feature: Find classes that not referred by your js/jsx/ts/tsx/html code): `css-checker -unused`
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
@@ -55,71 +53,72 @@ css-checker
 
 Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
 
-#### Run with path：
+#### Run with path
 
 - `css-checker -path=YOUR_PROJECT_PATH`
 
-#### Ignore by path:
+#### File Ignores
 
-- The user can fill in the file names to be ignored into `gitignore`and `css_check` will automatically ignore these files, which can be canceled by `-unrestricted=true`.
-- Please refer to the following basic commands for specific commands.
-- `-ignores=node_ Modules,packages `: used to ignore specific folders.
+- CSS-Checker ignores paths in `.gitignore` by default (You can disable this to read all files by using `-unrestricted=true`).
+- For adding extra paths to ignore, using: `-ignores=node_modules,packages `.
 
-#### About yaml files:
+#### Config File
 
-- `css_checker` parameter default reading `CSS checker.example.yaml` users can add parameters directly and do not need to prefix the parameters with `-`.
-- `-config=css-checker. .Yaml `: Files can be renamed by typing between `.`.
+- `css-checker.yaml`: CSS-Checker read this yaml file in your project path for settings, you can use parameters in `Basic Commands` sections to set up this file (without the leading '-').
+- A sample yaml file named 'css-checker.example.yaml' is also providied in this project, move it to your project path with the name 'css-checker.yaml' and it will work.
+- To specify your config file, use `-config=YOUR_CONFIG_FILE_PATH`.
 
-#### Basic commands：
+#### Basic commands
 
-- `-help`: prints help and exits
-- `-colors`: whether to check colors (default true)
-- `-ignores`: string paths and files to be ignored (e.g. node_modules,\*.example.css)
-- `-length-threshold`: int Min length of a single style value (no including the key) that to be considered as long script line (default 20)
-- `-long-line`: whether to check duplicated long script lines (default true)
-- `-path`: string set path to files, default to be current folder (default ".")
-- `-sections`: whether to check sections duplications (default true)
-- `-sim`: whether to check similar css classes (>=80% && < 100%) (default true)
-- `-version`: prints current version and exits
+- `colors`: whether to check colors (default true)
+- `config`: set configuration file path (string, default './css-checker.yaml')
+- `ignores`: paths and files to be ignored (e.g. node_modules,*.example.css) (string, default '')
+- `length-threshold`: Min length of a single style value (no including the key) that to be considered as long script line (default 20)
+- `long-line`: whether to check duplicated long script lines (default true)
+- `path`: set path to files, default to be current folder (default ".")
+- `sections`: whether to check css class duplications (default true)
+- `sim`: whether to check similar css classes (default true)
+- `sim-threshold`: Threshold for Similarity Check ($\geq20$ && $\lt100$) (int only, e.g. 80 for 80%, checks for identical classes defined in `sections`) (default 80)
+- `unrestricted`: search all files (gitignore)
+- `unused`: whether to check unused classes (Beta)
+- `version`: prints current version and exits
 
-#### Output:
+
+#### Outputs:
 
 ![image.png](https://assets.ruilisi.com/t=yDNXWrmyg+V6mUzCAG7A==)
 
-#### How we get similarities between classes?:
+#### How we get similarities between classes?
 
 0. Hash each line of class (aka. `section` in our code), Generate map: `LineHash -> Section`.
-1. Convert map `LineHash -> Section` => `[SectionIndex1][SectionIndex2] -> Duplicated Hashes`, n for identical hash, section stands for css class.
+1. Convert map `LineHash -> Section` => `[SectionIndex1][SectionIndex2] -> Duplicated Hashes`, section stands for css class.
 2. In map: `[SectionIndex1][SectionIndex2]` -> `Duplicated Hashes`, number of the duplicated hashes stands for duplicated lines between classes.
 
-#### Similarity Check:
+#### Similarity Check
 
-Check the similarity (>=80% && < 100%) between classes. This will print the same line in between classes.
+Check similarities ($\geq(sim-threshold)$ && $\lt100$) between classes. This will print the same line in between classes.
 
-#### Similarity threshold:
-
-- `-sim-threshold=`: similar thresholds that the user can use to customize (>=20% && <=60%).
-- `yaml:"sections"`: users can query by setting this parameter to be completely similar.
+- $sim-threshold$: using `-sim-threshold=` params or setting `sim-threshold:` in config yaml file, default 80, min 20.
 
 ![image.png](https://assets.ruilisi.com/bzljM=P4Mz+dmtHKNvdHtg==)
 
-#### Long Script Line Check:
+#### Duplicated CSS Classes
+
+Similar to `Similarity Check` but put those classes that are total identical to each other.
+
+#### Long Script Line Check
 
 Long scripts can be saved as varirables to make your life easiler. This will only alert when long scriptes are used for more then once.
 
 ![image.png](https://assets.ruilisi.com/5bdqZTuLTzJCaGSynA7+2w==)
 
-#### Colors Check:
+#### Colors Check
 
 Check colors in HEX/RGB/RGBA/HSL/HSLA that used more then once in your code. As for supporting of diffrent themes and possible future updates of you color set, you may consider to put them as css variables.
 
 ![image.png](https://assets.ruilisi.com/iqmnGQHwglb+pxE3kr3L1Q==)
 
-#### Duplicated CSS Classes:
-
-Similar to `Similarity Check` but put those classes that are total identical to each other.
-
-## Build & Release：
+## Build & Release
 
 - `make test-models`
 - `make build`
