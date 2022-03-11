@@ -22,7 +22,7 @@ const (
 )
 
 const (
-	Version = "1.0"
+	Version = "0.4.0"
 )
 
 type Params struct {
