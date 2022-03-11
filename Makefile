@@ -1,5 +1,5 @@
-VERSION := v0.3.1
-RELEASE_NOTE := "Add CICD and Makefile"
+VERSION := v0.4.0
+RELEASE_NOTE := "Add Path Ignores, Settings Yaml and Similarity Threshold"
 .PHONY: build test-models
 
 git-tag:
