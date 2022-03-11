@@ -10,7 +10,7 @@
   </a>
 </p>
 <p align="center">
-  <a href="README-zh_CN.md">View the 中文文档</a>
+  <a href="README-zh_CN.md">中文文档</a>
 </p>
 
 ## Purpose
