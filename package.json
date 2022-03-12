@@ -31,5 +31,10 @@
     "name": "css-checker",
     "path": "./bin",
     "url": "https://github.com/ruilisi/css-checker/releases/download/v0.3.1/css-checker_0.3.1_{{platform}}_{{arch}}.tar.gz"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^16.2.1",
+    "@commitlint/config-conventional": "^16.2.1",
+    "husky": "^7.0.4"
   }
 }
