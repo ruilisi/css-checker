@@ -7,14 +7,17 @@ import (
 	"strings"
 )
 
+// ClassNamesSplit cases for spliting classname to parts
 func ClassNamesSplit(r rune) bool {
 	return r == ':' || r == '.' || r == ' ' || r == '>'
 }
 
+// JSClassNamesSplit splits js class string to separated parts
 func JSClassNamesSplit(r rune) bool {
 	return r == '`' || r == ' ' || r == '.' || r == '='
 }
 
+// UnusedClassesChecker checks classes that never used by any js/jsx/ts/tsx/html/htm files in the project
 func UnusedClassesChecker() []StyleSection {
 	files, err := WalkMatch(params.Path, WalkMatchOptions{patterns: []string{"*.js", "*.jsx", "*.ts", "*.tsx", "*.html", "*.htm"}, ignores: params.Ignores})
 	notFoundSections := []StyleSection{}

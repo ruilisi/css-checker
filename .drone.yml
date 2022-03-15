@@ -22,6 +22,16 @@ trigger:
       - test
 
 steps:
+  - name: lint
+    image_pull_secrets:
+      - dockerconfig
+    image: ccr.ccs.tencentyun.com/ruilisi/xiemala-build-base:1.18
+    commands:
+      - go get
+      - make lint
+    environment:
+      GOPROXY: https://goproxy.cn,direct
+
   - name: test-models
     image: ccr.ccs.tencentyun.com/ruilisi-pub/golang-ci:1.16
     commands:

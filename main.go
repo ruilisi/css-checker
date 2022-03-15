@@ -14,17 +14,24 @@ import (
 )
 
 const (
-	InfoColor    = "\033[1;34m%s\033[0m"
-	NoticeColor  = "\033[1;36m%s\033[0m"
+	// InfoColor ...
+	InfoColor = "\033[1;34m%s\033[0m"
+	// NoticeColor ...
+	NoticeColor = "\033[1;36m%s\033[0m"
+	// WarningColor ...
 	WarningColor = "\033[1;33m%s\033[0m"
-	ErrorColor   = "\033[1;31m%s\033[0m"
-	DebugColor   = "\033[0;36m%s\033[0m"
+	// ErrorColor ...
+	ErrorColor = "\033[1;31m%s\033[0m"
+	// DebugColor ...
+	DebugColor = "\033[0;36m%s\033[0m"
 )
 
 const (
+	// Version for current version of css-checker
 	Version = "0.4.0"
 )
 
+// Params setting parameters
 type Params struct {
 	Version             bool     `yaml:"version"`
 	ColorsCheck         bool     `yaml:"colors"`
@@ -67,6 +74,7 @@ type Script struct {
 	hashValue   uint64
 }
 
+// ScriptSummary Here, script stands for css colors and lint lines (although they are not actual scripts ^_^).
 type ScriptSummary struct {
 	hashValue uint64
 	value     string
@@ -74,18 +82,21 @@ type ScriptSummary struct {
 	count     int
 }
 
+// SectionSummary for one section, the classes and count that occured under given paths
 type SectionSummary struct {
 	names []string
 	value string
 	count int
 }
 
+// SimilaritySummary records 2 sections' similarities and their common lines (here, duplicatedScript stands for common line)
 type SimilaritySummary struct {
 	sections          [2]StyleSection
 	similarity        int
 	duplicatedScripts []string
 }
 
+// StyleHashRecorder records sections index and original string
 type StyleHashRecorder struct {
 	sectionIndex int
 	originString string
@@ -103,6 +114,7 @@ func hash(s string) uint64 {
 	return h.Sum64()
 }
 
+// HashOrigin hashvalue and its origin
 type HashOrigin struct {
 	hash   uint64
 	origin string
@@ -163,22 +175,23 @@ func getSimilarSections() []SimilaritySummary {
 	return summary
 }
 
-// return values: (error, isConfigFileFound)
-func getConf(conf *Params, path string) (error, bool) {
+// return values: (isConfigFileFound, error)
+func getConf(conf *Params, path string) (bool, error) {
 	buf, err := ioutil.ReadFile(path)
 	if err != nil {
-		return nil, false // no config file is not an error
+		return false, nil // no config file is not an error
 	}
 
 	fmt.Printf("Config YAML found, using configs in: %s\n", path)
 	err = yaml.Unmarshal(buf, conf)
 	if err != nil {
 		fmt.Printf(ErrorColor, fmt.Sprintf("Config Error: in file %q: %v\n", path, err)) // config file in wrong format is an error
-		return err, true
+		return true, err
 	}
-	return nil, true
+	return true, err
 }
 
+// ParamsParse parse the given config from command line and .yaml file
 func ParamsParse() {
 	ignorePathsString := ""
 	flag.BoolVar(&params.ColorsCheck, "colors", true, "whether to check colors")
@@ -227,7 +240,7 @@ func main() {
 	if len(params.ConfigPath) == 0 {
 		configPath = fmt.Sprintf("css-checker.yaml")
 	}
-	err, found := getConf(&params, configPath)
+	found, err := getConf(&params, configPath)
 	if err != nil {
 		return // config file in wrong format
 	}

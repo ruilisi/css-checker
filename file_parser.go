@@ -83,6 +83,7 @@ func SectionsParse(filePath string, sim int) ([]Script, []Script) {
 	return longScriptList, colorScriptList
 }
 
+// ColorConversionStruct records original color string and its coresponded rgb color
 type ColorConversionStruct struct {
 	original string
 	rgb      string

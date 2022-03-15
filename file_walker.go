@@ -10,12 +10,14 @@ import (
 	gitignore "github.com/iriri/minimal/gitignore"
 )
 
+// WalkMatchOptions match options for WalkMatch
 type WalkMatchOptions struct {
 	ignores      []string
 	patterns     []string
 	unrestricted bool
 }
 
+// WalkMatch walk and match files, default match files not gitignored, can be customized by options
 func WalkMatch(root string, options WalkMatchOptions) ([]string, error) {
 	var matches []string
 	ignores := options.ignores

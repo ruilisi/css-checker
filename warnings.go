@@ -7,6 +7,7 @@ import (
 	"github.com/mazznoer/csscolorparser"
 )
 
+// SimilarSectionsWarning prints warnings for similar sections
 func SimilarSectionsWarning(similaritySummarys []SimilaritySummary, sim int) {
 	if len(similaritySummarys) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\n%d similar css classes found as follow (%d%% <= sim < 100%%)\n.\n", len(similaritySummarys), sim))
@@ -33,6 +34,7 @@ func SimilarSectionsWarning(similaritySummarys []SimilaritySummary, sim int) {
 	}
 }
 
+// StyleSectionsWarning prints warnings for style sections
 func StyleSectionsWarning(dupStyleSections []SectionSummary) {
 	if len(dupStyleSections) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\n%d duplicated css classes found as follow.\n", len(dupStyleSections)))
@@ -51,6 +53,7 @@ func StyleSectionsWarning(dupStyleSections []SectionSummary) {
 	}
 }
 
+// ColorScriptsWarning prints warnings for unvariabled colors that used more than once
 func ColorScriptsWarning(dupLongScripts []ScriptSummary) {
 	if len(dupLongScripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d duplicated color found as follow.\n", len(dupLongScripts)))
@@ -76,6 +79,7 @@ func ColorScriptsWarning(dupLongScripts []ScriptSummary) {
 	}
 }
 
+// LongScriptsWarning prints warnings for unvariabled css long lines that used more than once
 func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 	if len(dupLongScripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d duplicated css long scripts found as follow.\n", len(dupLongScripts)))
@@ -95,6 +99,7 @@ func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 	}
 }
 
+// UnusedScriptsWarning prints warnings for unused css classes
 func UnusedScriptsWarning(scripts []StyleSection) {
 	if len(scripts) > 0 {
 		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d css found not used.\n", len(scripts)))
