@@ -3,6 +3,7 @@ package main
 import (
 	"math"
 	"os"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strings"
@@ -13,25 +14,52 @@ import (
 
 // SectionsParse returns LongScripts and ColorScripts
 func SectionsParse(filePath string, sim int) ([]Script, []Script) {
+	// styledHeadLineReg regexp string to match the head lines of styled components
+	styledHeadLinesReg := regexp.MustCompile(`(const)\s*(\S+)\s..(styled).(.*?)` + "`")
+	// styledComponentsReg regexp to match the styled components
+	styledComponentsReg := regexp.MustCompile(`(const)\s*(\S+)\s..(styled).(.*?)` + "`" + `([` + "^`" + `]*)` + "`")
+
 	dat, err := os.ReadFile(filePath)
 	if err != nil {
 		return []Script{}, []Script{}
 	}
-	stylesheet, err := parser.Parse(string(dat))
-	if err != nil {
-		return []Script{}, []Script{}
+	styleString := ""
+	if filepath.Ext(filePath) == ".css" {
+		if stylesheet, err := parser.Parse(string(dat)); err == nil {
+			styleString = strings.Replace(stylesheet.String(), "\r", "", -1)
+		} else {
+			return []Script{}, []Script{}
+		}
+	} else {
+		// try extract styled components
+		matches := styledComponentsReg.FindAllStringSubmatch(string(dat), -1)
+		if len(matches) == 0 {
+			return []Script{}, []Script{}
+		}
+		for _, match := range matches {
+			if len(match) > 0 {
+				styleString += match[0] + "\n"
+			}
+		}
 	}
-	styleString := strings.Replace(stylesheet.String(), "\r", "", -1)
 
 	styleSection := StyleSection{name: "", value: []string{}, filePath: ""}
 	longScriptList := []Script{}
 	colorScriptList := []Script{}
 	colorReg := regexp.MustCompile(`#[A-Fa-f0-9]{3,6}|rgba\([0-9,%/ ]*\)|hsla\([0-9,%/ ]*\)|rgb\([0-9,%/ ]*\)|hsl\([0-9,%/ ]*\)`)
 	for _, sub := range strings.Split(styleString, "\n") {
-		if strings.HasSuffix(sub, "{") {
+		if strings.HasSuffix(sub, "{") { // css class starts
 			styleSection.name = strings.Replace(sub, "{", "", -1)
 			styleSection.filePath = filePath
-		} else if strings.Contains(sub, "}") {
+		} else if styledHeadLinesReg.MatchString(sub) { // styled component starts
+			splits := strings.Split(sub, " ")
+			if len(splits) > 1 {
+				styleSection.name = splits[1]
+			} else {
+				styleSection.name = sub
+			}
+			styleSection.filePath = filePath
+		} else if strings.Contains(sub, "}") || strings.HasSuffix(sub, "`") { // css class or styled component ends
 			if len(styleSection.value) > 0 {
 				sort.Strings(styleSection.value)
 				styleSection.valueHash = hash(strings.Join(styleSection.value, ""))

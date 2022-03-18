@@ -10,12 +10,12 @@ import (
 // SimilarSectionsWarning prints warnings for similar sections
 func SimilarSectionsWarning(similaritySummarys []SimilaritySummary, sim int) {
 	if len(similaritySummarys) > 0 {
-		fmt.Printf(WarningColor, fmt.Sprintf("\n%d similar css classes found as follow (%d%% <= sim < 100%%)\n.\n", len(similaritySummarys), sim))
+		fmt.Printf(WarningColor, fmt.Sprintf("\n%d similar classes found as follow (%d%% <= sim < 100%%)\n.\n", len(similaritySummarys), sim))
 		for index, summary := range similaritySummarys {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(ErrorColor, fmt.Sprintf("Sections share %d per cent similarity:\n", summary.similarity))
 			for _, section := range summary.sections {
-				fmt.Printf(WarningColor, fmt.Sprintf("Css in: %s << %s\n", section.name, section.filePath))
+				fmt.Printf(WarningColor, fmt.Sprintf("%s << %s\n", section.name, section.filePath))
 				fmt.Printf(DebugColor, "\n{\n")
 				for _, line := range section.value {
 					if strings.Contains(strings.Join(summary.duplicatedScripts, "\n"), line) {
@@ -30,23 +30,23 @@ func SimilarSectionsWarning(similaritySummarys []SimilaritySummary, sim int) {
 		fmt.Printf(WarningColor, fmt.Sprintf("For above classes, %s stands for duplicated lines\n\n\n", fmt.Sprintf(DebugColor, "Cyan Color")))
 	} else {
 		fmt.Printf(DebugColor, "√\t")
-		fmt.Printf(InfoColor, fmt.Sprintf("No similar css class found (%d%% <= sim < 100%%)\n", sim))
+		fmt.Printf(InfoColor, fmt.Sprintf("No similar class found (%d%% <= sim < 100%%)\n", sim))
 	}
 }
 
 // StyleSectionsWarning prints warnings for style sections
 func StyleSectionsWarning(dupStyleSections []SectionSummary) {
 	if len(dupStyleSections) > 0 {
-		fmt.Printf(WarningColor, fmt.Sprintf("\n%d duplicated css classes found as follow.\n", len(dupStyleSections)))
+		fmt.Printf(WarningColor, fmt.Sprintf("\n%d duplicated classes found as follow.\n", len(dupStyleSections)))
 		for index, longScript := range dupStyleSections {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(ErrorColor, fmt.Sprintf("Same class content found in %d places:\n", longScript.count))
 			for _, name := range longScript.names {
 				fmt.Printf("\t %s\n", name)
 			}
-			fmt.Printf(DebugColor, fmt.Sprintf("Css content:\n{\n%s\n}\n\n", longScript.value))
+			fmt.Printf(DebugColor, fmt.Sprintf("Content:\n{\n%s\n}\n\n", longScript.value))
 		}
-		fmt.Printf(WarningColor, fmt.Sprintf("\nThe content of %d duplicated css content shall be reused.\n", len(dupStyleSections)))
+		fmt.Printf(WarningColor, fmt.Sprintf("\nThe content of %d duplicated contents shall be reused.\n", len(dupStyleSections)))
 	} else {
 		fmt.Printf(DebugColor, "√\t")
 		fmt.Printf(InfoColor, "No duplicated un-variabled color script found\n")
@@ -82,8 +82,8 @@ func ColorScriptsWarning(dupLongScripts []ScriptSummary) {
 // LongScriptsWarning prints warnings for unvariabled css long lines that used more than once
 func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 	if len(dupLongScripts) > 0 {
-		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d duplicated css long scripts found as follow.\n", len(dupLongScripts)))
-		fmt.Println("(Duplicated long css scripts are recommanded to be extracted to variables)")
+		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d duplicated long line found as follow.\n", len(dupLongScripts)))
+		fmt.Println("(Duplicated long lines are recommanded to be extracted to variables)")
 		for index, longScript := range dupLongScripts {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(DebugColor, longScript.value)
@@ -92,7 +92,7 @@ func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 				fmt.Printf("%s In %s\n", script.sectionName, script.filePath)
 			}
 		}
-		fmt.Printf(WarningColor, fmt.Sprintf("\nThe above %d duplicated css long scripts shall be set to variables.\n", len(dupLongScripts)))
+		fmt.Printf(WarningColor, fmt.Sprintf("\nThe above %d duplicated long lines shall be set to variables.\n", len(dupLongScripts)))
 	} else {
 		fmt.Printf(DebugColor, "√\t")
 		fmt.Printf(InfoColor, "No duplicated long script found\n")
@@ -102,7 +102,7 @@ func LongScriptsWarning(dupLongScripts []ScriptSummary) {
 // UnusedScriptsWarning prints warnings for unused css classes
 func UnusedScriptsWarning(scripts []StyleSection) {
 	if len(scripts) > 0 {
-		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d css found not used.\n", len(scripts)))
+		fmt.Printf(WarningColor, fmt.Sprintf("\nOps %d classes found not used.\n", len(scripts)))
 		for index, script := range scripts {
 			fmt.Printf(WarningColor, fmt.Sprintf("(%d) ", index))
 			fmt.Printf(DebugColor, fmt.Sprintf("%s < %s\n", script.name, script.filePath))

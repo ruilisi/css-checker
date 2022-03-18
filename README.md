@@ -15,9 +15,9 @@
 
 ## Purpose
 
-`css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or similar css between files and to work well for both local development, and for automation like CI.
+`css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or `similar css` and `styled components` between files and to work well for both local development, and for automation like CI.
 
-Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
+Styled components check, Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
 
 ## Install
 
@@ -45,13 +45,15 @@ npm install -g css-checker-kit
 css-checker
 ```
 
-- (Alpha Feature: Find classes that not referred by your js/jsx/ts/tsx/html code): `css-checker -unused`
+- (Beta Feature: styled components check): `css-checker -styled`
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
 (Check and show the diff among similar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
 
-Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
+- Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
+
+- (Alpha Feature: Find classes that not referred by your code): `css-checker -unused`
 
 #### Run with path
 
@@ -68,21 +70,27 @@ Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared toget
 - A sample yaml file named 'css-checker.example.yaml' is also providied in this project, move it to your project path with the name 'css-checker.yaml' and it will work.
 - To specify your config file, use `-config=YOUR_CONFIG_FILE_PATH`.
 
+#### Advanced Features
+
+- Run with styled components check only (without checks for css): `css-checker -css=false -styled`
+- Find classes that not referred by your code: `css-checker -unused` (Alpha)
+
 #### Basic commands
 
 - `colors`: whether to check colors (default true)
+- `css`: whether to check css files (default true as you expected)
 - `config`: set configuration file path (string, default './css-checker.yaml')
-- `ignores`: paths and files to be ignored (e.g. node_modules,*.example.css) (string, default '')
+- `ignores`: paths and files to be ignored (e.g. node_modules,\*.example.css) (string, default '')
 - `length-threshold`: Min length of a single style value (no including the key) that to be considered as long script line (default 20)
 - `long-line`: whether to check duplicated long script lines (default true)
 - `path`: set path to files, default to be current folder (default ".")
 - `sections`: whether to check css class duplications (default true)
 - `sim`: whether to check similar css classes (default true)
 - `sim-threshold`: Threshold for Similarity Check ($\geq20$ && $\lt100$) (int only, e.g. 80 for 80%, checks for identical classes defined in `sections`) (default 80)
+- `styled`: checks for styled components (default false)
 - `unrestricted`: search all files (gitignore)
 - `unused`: whether to check unused classes (Beta)
 - `version`: prints current version and exits
-
 
 #### Outputs:
 

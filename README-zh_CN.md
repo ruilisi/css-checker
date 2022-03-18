@@ -45,7 +45,7 @@ npm install -g css-checker-kit
 css-checker
 ```
 
-- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码中未引用的 class）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
+- (Beta: Styled Components 检查，如您使用 Styled Components，可开启): `css-checker -styled`
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
@@ -68,9 +68,15 @@ css-checker
 - 此项目中还提供了一个名为“css-checker.example.yaml”的示例 yaml 文件，您可以将其命名为“css-checker.yaml”使用。
 - 您可以使用 `-config=YOUR_CONFIG_FILE_PATH`来指定您的配置文件。
 
+#### 高级功能
+
+- 仅检查 styled components (忽略 CSS 文件): `css-checker -css=false -styled`
+- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码中未引用的 class）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
+
 #### 基本命令
 
 - `colors`: 是否检查颜色（默认为 true）
+- `css`: 是否检查 CSS 文件 (默认 true)
 - `config`:设置配置文件路径 (string, default './css-checker.yaml') (string, default '')
 - `ignores`: 输出被忽略的路径和文件(e.g. node_modules,\*.example.css)
 - `length-threshold`: 被视为长脚本行的单个样式值（不包括键）的最小长度（默认 20）
@@ -78,7 +84,8 @@ css-checker
 - `path`: 文件路径的字符串，默认为当前文件夹（默认为"."）
 - `sections`: 是否检查部分重复（默认为 true）
 - `sim`: 是否检查相似的 css classes（默认 true）
-- `sim-threshold`：相似性检查的阈值（$\geq20%$ && $\lt100%$）（int 类型，如80表示80%，请注意此为相似性检查控制，完全相同的css classes检查由 `sections`控制）（默认为 80）
+- `sim-threshold`：相似性检查的阈值（$\geq20%$ && $\lt100%$）（int 类型，如 80 表示 80%，请注意此为相似性检查控制，完全相同的 css classes 检查由 `sections`控制）（默认为 80）
+- `styled`: 是否检查 Styled Components (默认 false)
 - `unrestricted`：搜索所有文件（gitignore）
 - `unused`：是否检查未使用的 classes（Beta）
 - `version`：打印当前版本并退出
@@ -95,7 +102,7 @@ css-checker
 
 #### 相似性检查
 
-检查 classes 之间的相似性 ($\geq(sim-threshold)$ && $\lt100$)，该功能会标注相似`classes`之前的diff (默认开启)。
+检查 classes 之间的相似性 ($\geq(sim-threshold)$ && $\lt100$)，该功能会标注相似`classes`之前的 diff (默认开启)。
 
 - $sim-threshold$：使用 `-sim-threshold=` 参数或在配置 yaml 文件中设置 `sim-threshold:`，默认 80，最少 20。
 

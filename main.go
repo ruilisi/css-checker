@@ -35,9 +35,11 @@ const (
 type Params struct {
 	Version             bool     `yaml:"version"`
 	ColorsCheck         bool     `yaml:"colors"`
+	CSS                 bool     `yaml:"css"`
 	SectionsCheck       bool     `yaml:"sections"`
 	SimilarityCheck     bool     `yaml:"sim"`
 	SimilarityThreshold int      `yaml:"sim-threshold"`
+	StyledComponents    bool     `yaml:"styled"`
 	LongScriptsCheck    bool     `yaml:"long-line"`
 	Path                string   `yaml:"path"`
 	LongScriptLength    int      `yaml:"length-threshold"`
@@ -52,6 +54,7 @@ var params = Params{
 	ColorsCheck:      true,
 	SectionsCheck:    true,
 	LongScriptsCheck: true,
+	CSS:              true,
 	Path:             ".",
 	LongScriptLength: 20,
 	Ignores:          []string{},
@@ -195,6 +198,7 @@ func getConf(conf *Params, path string) (bool, error) {
 func ParamsParse() {
 	ignorePathsString := ""
 	flag.BoolVar(&params.ColorsCheck, "colors", true, "whether to check colors")
+	flag.BoolVar(&params.CSS, "css", true, "whether to check css files")
 	flag.StringVar(&ignorePathsString, "ignores", "", "paths and files to be ignored (e.g. node_modules,*.example.css)")
 	flag.IntVar(&params.LongScriptLength, "length-threshold", 20, "Min length of a single style value (no including the key) that to be considered as long script line")
 	flag.BoolVar(&params.LongScriptsCheck, "long-line", true, "whether to check duplicated long script lines")
@@ -202,6 +206,7 @@ func ParamsParse() {
 	flag.BoolVar(&params.SectionsCheck, "sections", true, "whether to check css class duplications")
 	flag.BoolVar(&params.SimilarityCheck, "sim", true, "whether to check similar css classes")
 	flag.IntVar(&params.SimilarityThreshold, "sim-threshold", 80, "Threshold for Similarity Check (int only, >=20 && < 100, e.g. 80 for 80%)")
+	flag.BoolVar(&params.StyledComponents, "styled", false, "checks for styled components")
 	flag.BoolVar(&params.Unrestricted, "unrestricted", false, "search all files (gitignore)")
 	flag.BoolVar(&params.Unused, "unused", false, "whether to check unused classes (Beta)")
 	flag.BoolVar(&params.Version, "version", false, "prints current version and exits")
@@ -246,7 +251,14 @@ func main() {
 	}
 
 	// File Walk Starts
-	files, err := WalkMatch(params.Path, WalkMatchOptions{patterns: []string{"*.css"}, ignores: params.Ignores, unrestricted: params.Unrestricted})
+	patternsToCheck := []string{""}
+	if params.StyledComponents {
+		patternsToCheck = []string{"*.js", "*.jsx", "*.ts", "*.tsx"}
+	}
+	if params.CSS {
+		patternsToCheck = append(patternsToCheck, "*.css")
+	}
+	files, err := WalkMatch(params.Path, WalkMatchOptions{patterns: patternsToCheck, ignores: params.Ignores, unrestricted: params.Unrestricted})
 	if err != nil {
 		fmt.Printf(ErrorColor, fmt.Sprintf("No css files found at given path: %s", params.Path))
 		return

@@ -29,3 +29,11 @@ func TestClassSectionsProcessor(t *testing.T) {
 		assert.Equal(t, len(styleList), sectionsCounts[index])
 	}
 }
+
+func TestStyledComponentsSectionParse(t *testing.T) {
+	file := "tests/sample.ts"
+	styleList = []StyleSection{}
+	longScriptList, colorScriptList = SectionsParse(file, 80)
+	assert.Equal(t, len(longScriptList), 2)
+	assert.Equal(t, len(styleList), 2)
+}
