@@ -1,6 +1,6 @@
 {
   "name": "css-checker-kit",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Find and Reduce Similar & Duplicated CSS Scripts",
   "main": "index.js",
   "scripts": {

@@ -3,7 +3,7 @@
     <img alt="CSS-CHECKER" src="https://assets.ruilisi.com/cgULF9oHro3e1kSHXTfZYA==" width="211"/>
   </a>
 </p>
-<h1 align="center">Css Checker - Less is More</h1>
+<h1 align="center">CSS Checker - Less is More</h1>
 <p align="center">
   <a href="https://drone.ruilisi.com/ruilisi/css-checker" title="Build Status">
     <img src="https://drone.ruilisi.com/api/badges/ruilisi/css-checker/status.svg?ref=refs/heads/master">
@@ -15,9 +15,11 @@
 
 ## Purpose
 
-`css-checker` checks your css styles for duplications and find the diff among `css classes` with high similarity in seconds. It is designed to avoid redundant or `similar css` and `styled components` between files and to work well for both local development, and for automation like CI.
+`css-checker` checks your CSS styles for duplications and finds the diff among `CSS classes` with high similarity in seconds. It is designed to avoid redundantly or `similar css` and `styled components` between files and to work well for both local developments, and for automation like CI.
 
-Styled components check, Colors check, long scripts, unused CSS classes warning of css are also supported by default. This project is provided by [Xiemala Team](`https://xiemala.com`), it helps in remove hundreds of similar css classes for developers in this project.
+Similarity check, duplication check, colors check, long lines warning are supported by default. Styled components check, Unused CSS check can be enabled optionally. CSS checker can help reduce CSS code for developers in seconds.
+
+<p align="right"><em>See more on <a href="https://xiemala.com/s/gaSXqA">Wiki</a></em></p>
 
 ## Install
 
@@ -49,11 +51,11 @@ css-checker
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
-(Check and show the diff among similar classes (>=80%). Colors, long scripts that used more then once will also be pointed out by default. Check `css-checker -help` for customized options.)
+(Check and show the diff among similar classes (>=80%). Colors, long scripts that are used more than once will also be pointed out by default. Check `css-checker -help` for customized options.)
 
 - Colors with `rgb/rgba/hsl/hsla/hex` will be converted to rbga and compared together.
 
-- (Alpha Feature: Find classes that not referred by your code): `css-checker -unused`
+- (Alpha Feature: Find classes that are not referred to by your code): `css-checker -unused`
 
 #### Run with path
 
@@ -67,7 +69,7 @@ css-checker
 #### Config File
 
 - `css-checker.yaml`: CSS-Checker read this yaml file in your project path for settings, you can use parameters in `Basic Commands` sections to set up this file (without the leading '-').
-- A sample yaml file named 'css-checker.example.yaml' is also providied in this project, move it to your project path with the name 'css-checker.yaml' and it will work.
+- A sample yaml file named 'css-checker.example.yaml' is also provided in this project, move it to your project path with the name 'css-checker.yaml' and it will work.
 - To specify your config file, use `-config=YOUR_CONFIG_FILE_PATH`.
 
 #### Advanced Features
@@ -96,7 +98,7 @@ css-checker
 
 ![image.png](https://assets.ruilisi.com/t=yDNXWrmyg+V6mUzCAG7A==)
 
-#### How we get similarities between classes?
+#### How to get similarities between classes?
 
 0. Hash each line of class (aka. `section` in our code), Generate map: `LineHash -> Section`.
 1. Convert map `LineHash -> Section` => `[SectionIndex1][SectionIndex2] -> Duplicated Hashes`, section stands for css class.
@@ -112,17 +114,17 @@ Check similarities ($\geq(sim-threshold)$ && $\lt100$) between classes. This wil
 
 #### Duplicated CSS Classes
 
-Similar to `Similarity Check` but put those classes that are total identical to each other.
+Similar to `Similarity Check` but put those classes that are totally identical to each other.
 
 #### Long Script Line Check
 
-Long scripts can be saved as varirables to make your life easiler. This will only alert when long scriptes are used for more then once.
+Long scripts can be saved as variables to make your life easier. This will only alert when long lines are used for more than once.
 
 ![image.png](https://assets.ruilisi.com/5bdqZTuLTzJCaGSynA7+2w==)
 
 #### Colors Check
 
-Check colors in HEX/RGB/RGBA/HSL/HSLA that used more then once in your code. As for supporting of diffrent themes and possible future updates of you color set, you may consider to put them as css variables.
+Check colors in HEX/RGB/RGBA/HSL/HSLA that are used more than once in your code. As for supporting of different themes and possibly future updates of your color set, you may consider putting them as CSS variables.
 
 ![image.png](https://assets.ruilisi.com/iqmnGQHwglb+pxE3kr3L1Q==)
 
@@ -131,3 +133,6 @@ Check colors in HEX/RGB/RGBA/HSL/HSLA that used more then once in your code. As 
 - `make test-models`
 - `make build`
 - `make release`
+
+## Authors
+- [Xiemala Team](https://xiemala.com). It helps in removing hundreds of similar CSS classes for developers in this project.
