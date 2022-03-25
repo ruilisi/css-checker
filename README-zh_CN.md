@@ -15,9 +15,11 @@
 
 ## 目标
 
-`css-checker` 会检查您的 css 样式是否有重复，并在几秒钟内找到具有高度相似性的 `css classes` 之间的差异。它可以避免文件之间出现冗余或类似的 css，并适用于本地开发和 CI 等自动化。
+`css-checker` 会检查您的 css 样式是否有重复，并在几秒钟内找到具有高度相似性的 `css classes` 之间的差异。它旨在避免文件之间出现冗余或`相似的 css`和`样式化的组件`，并适用于本地开发和 CI 等自动化。
 
-默认情况下它还支持颜色检查、长脚本以及未使用的 CSS classes 的警告。该项目由 [Xiemala Team](`https://xiemala.com`) 提供，它有助于为该项目中的开发人员删除数百个类似的 css classes。
+它默认支持代码的相似性检查、重复检查、颜色检查以及长行警告。您可以为未使用的 CSS 检查选择启用样式组件检查，CSS checker 还可以帮助开发人员在几秒钟内减少 CSS 的代码。
+
+<p align="right"><em>查看更多<a href="https://xiemala.com/s/gaSXqA">Wiki</a></em></p>
 
 ## 安装
 
@@ -49,9 +51,11 @@ css-checker
 
 ![DEMO](https://assets.ruilisi.com/css-checker-demo.gif)
 
-（它可以检查 classes 之间的相似性，并显示（>=80%）相似度的 classes 之间的差异。默认情况下，他还能找出使用了多次的颜色、长脚本。可以用“css checker-help”来查看自定义选项。）
+（它可以检查 classes 之间的相似性，并显示（>=80%）相似度的 classes 之间的差异。默认情况下，他还能找出使用了多次的颜色、长脚本。可以用`css checker -help`来查看自定义选项。）
 
-它能将带有“rgb/rgba/hsl/hsla/hex”的颜色转换为 rbga 并一起比较。
+- 它能将带有 `rgb/rgba/hsl/hsla/hex` 的颜色转换为 rbga 并一起比较。
+
+- （Alpha 功能：查找代码未引用的类）：`css-checker -unused`
 
 #### 按路径运行
 
@@ -71,7 +75,7 @@ css-checker
 #### 高级功能
 
 - 仅检查 styled components (忽略 CSS 文件): `css-checker -css=false -styled`
-- （Alpha 功能：查找 js/jsx/ts/tsx/html 代码中未引用的 class）: `css-checker -path=[YOUR_PROJECT_PATH] -unused`
+- 查找代码未引用的类：`css-checker -unused` (Alpha)
 
 #### 基本命令
 
@@ -129,3 +133,7 @@ css-checker
 - `make test-models`
 - `make build`
 - `make release`
+
+## 作者
+
+- [Xiemala Team](https://xiemala.com)。 它有助于为该项目中的开发人员删除数百个类似的 CSS classes。
