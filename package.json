@@ -1,6 +1,6 @@
 {
   "name": "css-checker-kit",
-  "version": "0.4.1",
+  "version": "0.4.2",
   "description": "Find and Reduce Similar & Duplicated CSS Scripts",
   "main": "index.js",
   "scripts": {
@@ -20,12 +20,12 @@
   },
   "homepage": "https://github.com/ruilisi/css-checker#readme",
   "dependencies": {
-    "go-npm": "^0.1.9"
+    "@gzuidhof/go-npm": "^0.1.13"
   },
   "goBinary": {
     "name": "css-checker",
     "path": "./bin",
-    "url": "https://github.com/ruilisi/css-checker/releases/download/v0.4.0/css-checker_0.4.0_{{platform}}_{{arch}}.tar.gz"
+    "url": "https://github.com/ruilisi/css-checker/releases/download/v0.4.1/css-checker_0.4.1_{{platform}}_{{arch}}.tar.gz"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.2.1",
