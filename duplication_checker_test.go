@@ -31,3 +31,31 @@ func TestDuplicatedStyledComponentsCheck(t *testing.T) {
 	summaryList = DupScriptsChecker(longs)
 	assert.Equal(t, len(summaryList), 1)
 }
+
+func TestDupStyleSectionsChecker(t *testing.T) { //same for css classes
+
+	styleSectionFirst := StyleSection{
+		name:      "firstName",
+		filePath:  "tests/firstLocation",
+		value:     []string{"color:'red'", "size:18"},
+		valueHash: 0x5777296270491287,
+	}
+	styleSectionSecond := StyleSection{
+		name:      "secondName",
+		filePath:  "tests/secondLocation",
+		value:     []string{"color:'green'", "size:18"},
+		valueHash: 0xe29045cf01e7f547,
+	}
+	styleSectionThird := StyleSection{
+		name:      "thirdName",
+		filePath:  "tests/thirdLocation",
+		value:     []string{"color:'red'", "size:18"},
+		valueHash: 0x5777296270491287,
+	}
+	styleList := []StyleSection{
+		styleSectionFirst,
+		styleSectionSecond,
+		styleSectionThird}
+	sectionSummary := DupStyleSectionsChecker(styleList)
+	assert.Equal(t, 2, sectionSummary[0].count)
+}
