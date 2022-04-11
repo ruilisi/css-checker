@@ -134,5 +134,12 @@ Check colors in HEX/RGB/RGBA/HSL/HSLA that are used more than once in your code.
 - `make build`
 - `make release`
 
+## Q&A
+#### Ugly output in PowerShell
+From PowerShell, paste the following script and run it to activate `ANSI escape sequences`, then restart your PowerShell.
+```
+Set-ItemProperty HKCU:\Console VirtualTerminalLevel -Type DWORD 1
+```
+
 ## Authors
 - [Xiemala Team](https://xiemala.com). It helps in removing hundreds of similar CSS classes for developers in this project.
