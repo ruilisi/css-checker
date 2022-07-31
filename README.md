@@ -93,6 +93,9 @@ css-checker
 - `unrestricted`: search all files (gitignore)
 - `unused`: whether to check unused classes (Beta)
 - `version`: prints current version and exits
+- `to-file`: wherther generate a html file (default true)
+- `file-name`: if to-file is true, set the html file name(default css-checker.html)
+
 
 #### Outputs:
 
